@@ -12,7 +12,9 @@
 
   const PRESETS = {
     brownies: {
+      id: "brownies",
       title: "Chu's Famous Fudge Brownies",
+      category: "baking",
       yield: "16 squares (8x8 pan)",
       source: "Michael Chu / Cooking for Engineers",
       description: "Dense, rich, intensely chocolate brownies with a fresh brewed espresso kick.",
@@ -41,7 +43,9 @@
     },
 
     "japanese-curry": {
+      id: "japanese-curry",
       title: "Instant Pot Japanese Curry",
+      category: "mains",
       yield: "6 servings (or 3 batches / 1500g)",
       source: "Just One Cookbook / Alchemy Kitchen",
       description: "Comforting Japanese curry prepared in a pressure cooker with tender chicken, potatoes, and rich velvety gravy.",
@@ -76,7 +80,9 @@
     },
 
     "mojo-pork": {
+      id: "mojo-pork",
       title: "Authentic Cuban Mojo Pork & Cubano Sandwich",
+      category: "mains",
       yield: "8 to 10 sandwiches",
       source: "Traditional Cuban / Alchemy Kitchen",
       description: "Citrus-garlic marinated slow-roasted pork shoulder layered with ham, Swiss, pickles, and mustard on toasted plancha bread.",
@@ -114,7 +120,9 @@
     },
 
     "bbq-sauce": {
+      id: "bbq-sauce",
       title: "Apple BBQ Sauce",
+      category: "sauces",
       yield: "~2 cups (480 mL)",
       source: "Alchemy Smokehouse",
       description: "Sweet, tangy apple barbecue sauce balanced with cider vinegar, brown sugar, and spirits.",
@@ -140,7 +148,9 @@
     },
 
     "pickled-onions": {
+      id: "pickled-onions",
       title: "Quick Pickled Red Onions",
+      category: "sauces",
       yield: "1 pint mason jar (480 mL)",
       source: "Alchemy Kitchen",
       description: "Crisp, vibrant pink pickled onions. Perfect topping for tacos, cubano sandwiches, burgers, and bowls.",
@@ -165,7 +175,9 @@
     },
 
     "choc-chip-cookies": {
+      id: "choc-chip-cookies",
       title: "Ultimate Chocolate Chip Cookies",
+      category: "baking",
       yield: "24 cookies",
       source: "Cooking for Engineers / Alchemy",
       description: "Crisp golden edges, soft chewy center, with balanced dark chocolate chunks.",
@@ -195,7 +207,9 @@
     },
 
     carbonara: {
+      id: "carbonara",
       title: "Authentic Spaghetti alla Carbonara",
+      category: "mains",
       yield: "4 servings",
       source: "Traditional Roman / Culinary Engineering",
       description: "No cream, no peas. Just guanciale, pecorino, eggs, black pepper, and pasta water.",
@@ -220,7 +234,9 @@
     },
 
     pancakes: {
+      id: "pancakes",
       title: "Fluffy Buttermilk Pancakes",
+      category: "breakfast",
       yield: "12 pancakes",
       source: "Cooking for Engineers Standard",
       description: "Tender, airy pancakes with golden browned rings.",
@@ -248,7 +264,9 @@
     },
 
     "pizza-dough": {
+      id: "pizza-dough",
       title: "72-Hour Fermented Pizza Dough",
+      category: "baking",
       yield: "4 dough balls (280g each, 12-inch pizzas)",
       source: "Culinary Engineering Lab",
       description: "65% hydration Neapolitan-style dough with airy cornicione and leopard spotting.",
@@ -273,7 +291,9 @@
     },
 
     "v60-coffee": {
+      id: "v60-coffee",
       title: "Engineer's V60 Pour Over Coffee",
+      category: "beverages",
       yield: "1 large mug (300 mL)",
       source: "CFE Extraction Protocol",
       description: "1:15 ratio single-origin pour over targeting 20% extraction yield.",
@@ -297,6 +317,67 @@
   };
 
   // ============================================================================
+  // Custom Recipes Storage (localStorage)
+  // ============================================================================
+
+  const STORAGE_KEY = 'cfe_custom_recipes';
+
+  function getCustomRecipes() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error reading custom recipes from storage:', e);
+      return [];
+    }
+  }
+
+  function saveCustomRecipe(recipe) {
+    const custom = getCustomRecipes();
+    if (!recipe.id) {
+      recipe.id = 'custom_' + Date.now();
+    }
+    recipe.isCustom = true;
+    const idx = custom.findIndex(r => r.id === recipe.id || (r.title && r.title.toLowerCase() === (recipe.title || '').toLowerCase()));
+    if (idx >= 0) {
+      custom[idx] = recipe;
+    } else {
+      custom.unshift(recipe);
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+    } catch (e) {
+      console.error('Error saving recipe to storage:', e);
+    }
+    updateRecipeCatalogUI();
+  }
+
+  function deleteCustomRecipe(id) {
+    let custom = getCustomRecipes();
+    custom = custom.filter(r => r.id !== id);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+    } catch (e) {
+      console.error('Error deleting recipe:', e);
+    }
+    updateRecipeCatalogUI();
+  }
+
+  function getAllRecipes() {
+    const list = [];
+    // Built-in presets
+    for (const [key, preset] of Object.entries(PRESETS)) {
+      list.push({ ...preset, key, isCustom: false });
+    }
+    // Custom saved recipes
+    const custom = getCustomRecipes();
+    custom.forEach(c => {
+      list.push({ ...c, key: c.id, isCustom: true });
+    });
+    return list;
+  }
+
+  // ============================================================================
   // Application State
   // ============================================================================
 
@@ -308,7 +389,9 @@
     zoom: 1.0,
     kitchenMode: false,
     completedItems: new Set(),
-    activeTimer: null
+    activeTimer: null,
+    browserFilterCat: 'all',
+    browserSearchTerm: ''
   };
 
   // ============================================================================
@@ -322,6 +405,9 @@
     scaleBtns: document.querySelectorAll('.scale-control-group .btn-pill'),
     unitBtns: document.querySelectorAll('.unit-control-group .btn-pill'),
     cookModeBtn: document.getElementById('cookModeBtn'),
+    browseBtn: document.getElementById('browseBtn'),
+    recipeCountBadge: document.getElementById('recipeCountBadge'),
+    newRecipeBtn: document.getElementById('newRecipeBtn'),
     importBtn: document.getElementById('importBtn'),
     exportDropdownBtn: document.getElementById('exportDropdownBtn'),
     exportMenu: document.getElementById('exportMenu'),
@@ -346,6 +432,7 @@
     recipeDescription: document.getElementById('recipeDescription'),
     prepStepsContainer: document.getElementById('prepStepsContainer'),
     addPrepStepBtn: document.getElementById('addPrepStepBtn'),
+    saveCurrentRecipeBtn: document.getElementById('saveCurrentRecipeBtn'),
     ingredientsListContainer: document.getElementById('ingredientsListContainer'),
     addIngredientBtn: document.getElementById('addIngredientBtn'),
     quickAddIngBtn: document.getElementById('quickAddIngBtn'),
@@ -375,6 +462,26 @@
     stopActiveTimerBtn: document.getElementById('stopActiveTimerBtn'),
 
     // Modals
+    browserModal: document.getElementById('browserModal'),
+    closeBrowserModalBtn: document.getElementById('closeBrowserModalBtn'),
+    closeBrowserBtnBottom: document.getElementById('closeBrowserBtnBottom'),
+    browserCreateNewBtn: document.getElementById('browserCreateNewBtn'),
+    browserSearchInput: document.getElementById('browserSearchInput'),
+    categoryFilterPills: document.querySelectorAll('#categoryFilterPills .cat-pill'),
+    recipeBrowserGrid: document.getElementById('recipeBrowserGrid'),
+
+    createRecipeModal: document.getElementById('createRecipeModal'),
+    closeCreateRecipeModalBtn: document.getElementById('closeCreateRecipeModalBtn'),
+    cancelCreateRecipeBtn: document.getElementById('cancelCreateRecipeBtn'),
+    submitCreateRecipeBtn: document.getElementById('submitCreateRecipeBtn'),
+    newRecipeTitleInput: document.getElementById('newRecipeTitleInput'),
+    newRecipeCategoryInput: document.getElementById('newRecipeCategoryInput'),
+    newRecipeYieldInput: document.getElementById('newRecipeYieldInput'),
+    newRecipeDescInput: document.getElementById('newRecipeDescInput'),
+    newRecipePrepInput: document.getElementById('newRecipePrepInput'),
+    newRecipeIngInput: document.getElementById('newRecipeIngInput'),
+    newRecipeAutoFlow: document.getElementById('newRecipeAutoFlow'),
+
     importModal: document.getElementById('importModal'),
     importRecipeInput: document.getElementById('importRecipeInput'),
     closeImportModalBtn: document.getElementById('closeImportModalBtn'),
@@ -422,7 +529,6 @@
   function formatIngredientText(ing, scale, unitMode) {
     if (!ing) return '';
 
-    // If ingredient has custom text and scale is 1, return it
     if (ing.customText && scale === 1 && unitMode === 'dual') {
       return ing.customText;
     }
@@ -440,7 +546,6 @@
       return metricStr ? `${metricStr} ${ing.name}`.trim() : (usStr ? `${usStr} ${ing.name}` : ing.rawText || ing.name);
     }
 
-    // Dual mode (US + Metric)
     if (usStr && metricStr) {
       return `${usStr} (${metricStr}) ${ing.name}`.trim();
     }
@@ -454,10 +559,6 @@
   // Tabular Recipe Matrix Solver & Compiler
   // ============================================================================
 
-  /**
-   * Compiles the recipe into an HTML table with exact Cooking for Engineers
-   * Tabular Recipe Notation structure.
-   */
   function compileRecipeTable(recipe, scale, unitMode) {
     const ingredients = recipe.ingredients || [];
     const actions = recipe.actions || [];
@@ -465,26 +566,18 @@
 
     const numRows = ingredients.length;
     if (numRows === 0) {
-      return '<tr><td style="padding: 2rem; text-align: center;">No ingredients added yet.</td></tr>';
+      return '<tr><td style="padding: 2.5rem; text-align: center; color: var(--ui-text-muted);">No ingredients yet. Use the sidebar to add ingredients or click "+ New" above.</td></tr>';
     }
 
-    // Determine total action columns
     let maxCol = 1;
     actions.forEach(a => {
       if (a.col && a.col > maxCol) maxCol = a.col;
     });
 
-    const totalCols = maxCol + 1; // Col 0 is ingredients, Col 1..maxCol are actions
-
-    // 2D grid tracking: [row][col]
-    // Values:
-    // null: empty cell
-    // { type: 'ingredient', data, rowspan, colspan }
-    // { type: 'action', data, rowspan, colspan }
-    // { type: 'covered' }: covered by an earlier cell's rowspan/colspan
+    const totalCols = maxCol + 1;
     const grid = Array.from({ length: numRows }, () => Array(totalCols).fill(null));
 
-    // 1. Place action blocks into grid
+    // Place action blocks
     actions.forEach(act => {
       const col = act.col || 1;
       const startRow = Math.max(0, Math.min(numRows - 1, act.startRow !== undefined ? act.startRow : 0));
@@ -499,16 +592,14 @@
           colspan: 1
         };
 
-        // Mark covered rows in this column
         for (let r = startRow + 1; r <= endRow; r++) {
           grid[r][col] = { type: 'covered' };
         }
       }
     });
 
-    // 2. Place ingredients at col 0, extending with colspan until the first action in that row
+    // Place ingredients with colspan
     for (let r = 0; r < numRows; r++) {
-      // Find the first column >= 1 that has an action block covering row r
       let firstActionCol = totalCols;
       for (let c = 1; c < totalCols; c++) {
         if (grid[r][c] !== null) {
@@ -525,18 +616,16 @@
         colspan: ingColspan
       };
 
-      // Mark columns spanned by this ingredient
       for (let c = 1; c < ingColspan; c++) {
         grid[r][c] = { type: 'covered' };
       }
     }
 
-    // 3. For any remaining empty slots between an action and subsequent actions, extend with colspan
+    // Extend intermediate actions horizontally if gaps exist
     for (let r = 0; r < numRows; r++) {
       for (let c = 1; c < totalCols; c++) {
         const cell = grid[r][c];
         if (cell && cell.type === 'action') {
-          // Check how many columns to the right are completely empty for ALL rows in this action's span
           let canExpand = true;
           let extraColspan = 0;
           for (let nextC = c + 1; nextC < totalCols; nextC++) {
@@ -563,7 +652,7 @@
     // Build HTML string
     let html = '';
 
-    // Prep steps banner header rows (spanning all columns)
+    // Prep steps banner header rows
     prepSteps.forEach((step, idx) => {
       if (!step || !step.trim()) return;
       html += `
@@ -582,7 +671,7 @@
       for (let c = 0; c < totalCols; c++) {
         const cell = grid[r][c];
         if (!cell || cell.type === 'covered') {
-          continue; // Handled by rowspan/colspan of earlier cell
+          continue;
         }
 
         if (cell.type === 'ingredient') {
@@ -644,36 +733,26 @@
   function renderRecipeCard() {
     const recipe = state.recipe;
 
-    // Headers & Meta
     els.cardTitle.textContent = recipe.title || 'Untitled Recipe';
     els.canvasRecipeTitle.textContent = recipe.title || 'Untitled Recipe';
-    els.cardYield.textContent = recipe.yield || 'Yield: Standard';
+    els.cardYield.textContent = recipe.yield || 'Standard Yield';
     els.cardSource.textContent = recipe.source || 'Cooking for Engineers';
     els.cardScaleIndicator.textContent = `${state.scale}× scale`;
 
-    // Render Tabular Grid
     els.cfeTable.innerHTML = compileRecipeTable(recipe, state.scale, state.unitMode);
-
-    // Sync Raw JSON tab
     els.rawJsonEditor.value = JSON.stringify(recipe, null, 2);
   }
 
   function renderSidebar() {
     const recipe = state.recipe;
 
-    // Basics Tab
     els.recipeTitle.value = recipe.title || '';
     els.recipeYield.value = recipe.yield || '';
     els.recipeSource.value = recipe.source || '';
     els.recipeDescription.value = recipe.description || '';
 
-    // Prep Steps
     renderPrepStepsList();
-
-    // Ingredients
     renderIngredientsList();
-
-    // Action Flow
     renderActionStepsList();
   }
 
@@ -732,7 +811,6 @@
       const card = document.createElement('div');
       card.className = 'action-card';
 
-      // Row options dropdown
       let startOptions = '';
       let endOptions = '';
       for (let r = 0; r < numRows; r++) {
@@ -783,6 +861,179 @@
   }
 
   // ============================================================================
+  // Cookbook Browser & Custom Recipes UI
+  // ============================================================================
+
+  function updateRecipeCatalogUI() {
+    const all = getAllRecipes();
+
+    // 1. Update Header Badge Count
+    if (els.recipeCountBadge) {
+      els.recipeCountBadge.textContent = all.length;
+    }
+
+    // 2. Update Header Preset Select Dropdown
+    if (els.presetSelect) {
+      const currentTitle = state.recipe.title;
+      let html = '<option value="" disabled selected>📖 Select a Recipe...</option>';
+
+      html += '<optgroup label="⭐ Curated Presets">';
+      for (const [key, preset] of Object.entries(PRESETS)) {
+        const isSel = preset.title === currentTitle ? 'selected' : '';
+        html += `<option value="preset:${key}" ${isSel}>${getCategoryEmoji(preset.category)} ${preset.title}</option>`;
+      }
+      html += '</optgroup>';
+
+      const custom = getCustomRecipes();
+      if (custom.length > 0) {
+        html += '<optgroup label="💾 My Saved Recipes">';
+        custom.forEach(c => {
+          const isSel = c.title === currentTitle ? 'selected' : '';
+          html += `<option value="custom:${c.id}" ${isSel}>⭐ ${escapeHtml(c.title)}</option>`;
+        });
+        html += '</optgroup>';
+      }
+
+      els.presetSelect.innerHTML = html;
+    }
+
+    // 3. Re-render Recipe Browser if open
+    if (!els.browserModal.classList.contains('d-none')) {
+      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
+    }
+  }
+
+  function getCategoryEmoji(cat) {
+    switch (cat) {
+      case 'baking': return '🍰';
+      case 'mains': return '🍛';
+      case 'sauces': return '🥫';
+      case 'breakfast': return '🥞';
+      case 'beverages': return '☕';
+      default: return '🍽️';
+    }
+  }
+
+  function renderRecipeBrowser(category = 'all', searchQuery = '') {
+    const all = getAllRecipes();
+    const query = (searchQuery || '').trim().toLowerCase();
+
+    const filtered = all.filter(r => {
+      // Category filter
+      if (category === 'custom' && !r.isCustom) return false;
+      if (category !== 'all' && category !== 'custom' && r.category !== category) return false;
+
+      // Search query filter
+      if (query) {
+        const titleMatch = (r.title || '').toLowerCase().includes(query);
+        const descMatch = (r.description || '').toLowerCase().includes(query);
+        const sourceMatch = (r.source || '').toLowerCase().includes(query);
+        const ingMatch = (r.ingredients || []).some(i => (i.name || '').toLowerCase().includes(query));
+        return titleMatch || descMatch || sourceMatch || ingMatch;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      els.recipeBrowserGrid.innerHTML = `
+        <div class="empty-browser-state">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+          <h4>No matching recipes found</h4>
+          <p class="form-help">Try changing your search term or category filter, or click "+ Create New Recipe" below.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(r => {
+      const emoji = getCategoryEmoji(r.category);
+      const ingsCount = (r.ingredients || []).length;
+      const stepsCount = (r.actions || []).length;
+      const isCustom = !!r.isCustom;
+
+      html += `
+        <div class="recipe-card-preview ${isCustom ? 'is-custom' : ''}">
+          <div>
+            <div class="preview-card-top">
+              <span class="preview-category-tag">${emoji} ${escapeHtml(r.category || 'Recipe')}</span>
+              <span class="preview-source-badge">${isCustom ? '⭐ My Recipe' : escapeHtml(truncate(r.source, 20))}</span>
+            </div>
+            <h4 class="preview-card-title">${escapeHtml(r.title || 'Untitled')}</h4>
+            <p class="preview-card-desc">${escapeHtml(r.description || 'No description provided.')}</p>
+          </div>
+          <div>
+            <div class="preview-card-stats">
+              <span>🌾 ${ingsCount} ing.</span>
+              <span>•</span>
+              <span>⚙️ ${stepsCount} steps</span>
+              <span>•</span>
+              <span>${escapeHtml(truncate(r.yield || 'Standard', 12))}</span>
+            </div>
+            <div class="preview-card-actions">
+              <button type="button" class="btn btn-sm btn-primary btn-card-open" data-action="open" data-key="${r.key}" data-custom="${isCustom}">
+                Open in Studio
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" title="Duplicate recipe" data-action="fork" data-key="${r.key}" data-custom="${isCustom}">
+                Fork
+              </button>
+              ${isCustom ? `
+                <button type="button" class="btn btn-sm btn-secondary text-danger" title="Delete recipe" data-action="delete" data-id="${r.id}">
+                  ✕
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    els.recipeBrowserGrid.innerHTML = html;
+  }
+
+  function openRecipeByKey(key, isCustom) {
+    let target = null;
+    if (isCustom) {
+      const custom = getCustomRecipes();
+      target = custom.find(r => r.id === key);
+    } else {
+      target = PRESETS[key];
+    }
+
+    if (target) {
+      state.recipe = JSON.parse(JSON.stringify(target));
+      state.completedItems.clear();
+      renderRecipeCard();
+      renderSidebar();
+      els.browserModal.classList.add('d-none');
+      showToast(`Loaded ${target.title}!`);
+    }
+  }
+
+  function forkRecipeByKey(key, isCustom) {
+    let source = null;
+    if (isCustom) {
+      const custom = getCustomRecipes();
+      source = custom.find(r => r.id === key);
+    } else {
+      source = PRESETS[key];
+    }
+
+    if (source) {
+      const forked = JSON.parse(JSON.stringify(source));
+      forked.id = 'custom_' + Date.now();
+      forked.title = `${forked.title} (Copy)`;
+      forked.isCustom = true;
+      saveCustomRecipe(forked);
+      state.recipe = forked;
+      renderRecipeCard();
+      renderSidebar();
+      els.browserModal.classList.add('d-none');
+      showToast(`Forked as "${forked.title}"!`);
+    }
+  }
+
+  // ============================================================================
   // Smart Recipe Text Parser & Auto-Flow Generator
   // ============================================================================
 
@@ -792,6 +1043,7 @@
     const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
     const parsed = {
       title: 'Imported Recipe',
+      category: 'other',
       yield: '',
       source: 'Custom / Imported',
       description: '',
@@ -800,13 +1052,12 @@
       actions: []
     };
 
-    let section = 'header'; // 'header', 'ingredients', 'instructions'
+    let section = 'header';
     const instructionLines = [];
 
     lines.forEach((line, i) => {
       const lower = line.toLowerCase();
 
-      // Detect Title / Yield
       if (i === 0 && !lower.includes('ingredient') && !lower.includes('instruction')) {
         parsed.title = line.replace(/^[#*\s]+/, '');
         return;
@@ -816,7 +1067,6 @@
         return;
       }
 
-      // Detect section changes
       if (lower.includes('ingredient')) {
         section = 'ingredients';
         return;
@@ -826,7 +1076,6 @@
         return;
       }
 
-      // Prep steps detection (e.g. "Preheat oven", "Butter pan")
       if (section === 'header' || section === 'instructions') {
         if (/preheat|butter and flour|grease|line.*sheet|line.*pan|bring.*boil/i.test(line) && line.length < 120) {
           parsed.prepSteps.push(line.replace(/^\d+[\.\)]\s*/, ''));
@@ -844,9 +1093,7 @@
       }
     });
 
-    // Auto-generate actions based on parsed ingredients and instructions
     parsed.actions = generateAutoActions(parsed.ingredients, instructionLines);
-
     return parsed;
   }
 
@@ -854,7 +1101,6 @@
     const clean = line.replace(/^[-*•\d+\.]\s*/, '').trim();
     if (!clean) return null;
 
-    // Check for dual units like "4 oz (115 g) unsalted butter" or "1 cup (200 g) sugar"
     const dualMatch = clean.match(/^([\d\s\/\.\u00BC-\u00BE\u2150-\u215E]+)\s*([a-zA-Z\.]+)?\s*\(([\d\s\/\.]+)\s*([a-zA-Z]+)\)\s+(.*)$/);
     if (dualMatch) {
       return {
@@ -868,7 +1114,6 @@
       };
     }
 
-    // Standard single unit match
     const singleMatch = clean.match(/^([\d\s\/\.\u00BC-\u00BE\u2150-\u215E]+)\s*([a-zA-Z\.]+)?\s+(.*)$/);
     if (singleMatch) {
       return {
@@ -882,7 +1127,6 @@
       };
     }
 
-    // Fallback
     return {
       id: `ing_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       amount: null,
@@ -898,7 +1142,6 @@
     if (!str) return null;
     str = str.trim();
 
-    // Unicode fractions
     const unicodeFractions = { '¼': 0.25, '½': 0.5, '¾': 0.75, '⅓': 0.333, '⅔': 0.666, '⅛': 0.125 };
     for (const [char, val] of Object.entries(unicodeFractions)) {
       if (str.includes(char)) {
@@ -920,17 +1163,14 @@
     return parseFloat(str) || null;
   }
 
-  function generateAutoActions(ingredients, instructions) {
+  function generateAutoActions(ingredients, instructions = []) {
     const numRows = ingredients.length;
     if (numRows === 0) return [];
 
     const actions = [];
     let currentCol = 1;
-
-    // Detect if instructions have common baking stages
     const joinedInst = instructions.join(' ').toLowerCase();
 
-    // Check for "whisk dry" vs "mix wet" pattern
     const dryIndices = [];
     const wetIndices = [];
 
@@ -951,7 +1191,6 @@
       const minDry = Math.min(...dryIndices);
       const maxDry = Math.max(...dryIndices);
 
-      // Wet group
       actions.push({
         id: `act_${Date.now()}_1`,
         action: 'mix',
@@ -960,7 +1199,6 @@
         col: 1
       });
 
-      // Dry group
       if (maxDry > minDry) {
         actions.push({
           id: `act_${Date.now()}_2`,
@@ -974,7 +1212,6 @@
 
       currentCol = 2;
 
-      // Combine dry and wet
       actions.push({
         id: `act_${Date.now()}_3`,
         action: 'fold in',
@@ -983,7 +1220,6 @@
         col: currentCol++
       });
 
-      // Final bake step
       const bakeMatch = joinedInst.match(/bake(?:\s+at)?\s+(\d+°?\s*[fcFC]?)[^\.\n]*?(?:for\s+)?(\d+\s*(?:to|-)\s*\d+\s*min(?:utes)?|\d+\s*min(?:utes)?)/i);
       actions.push({
         id: `act_${Date.now()}_4`,
@@ -995,7 +1231,6 @@
         col: currentCol
       });
     } else {
-      // Default linear pipeline
       actions.push({
         id: `act_${Date.now()}_1`,
         action: 'combine & mix',
@@ -1023,10 +1258,9 @@
   function exportAsPng() {
     showToast('Generating high-resolution PNG image...');
 
-    // We render the card cleanly to an offscreen canvas with high DPI (2x)
     const card = els.recipeCardWrapper;
     const rect = card.getBoundingClientRect();
-    const dpr = 2; // High-resolution retina output
+    const dpr = 2;
 
     const width = Math.ceil(rect.width);
     const height = Math.ceil(rect.height);
@@ -1037,7 +1271,6 @@
     const ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
 
-    // Create SVG foreignObject container
     const clonedHtml = card.outerHTML;
     const computedStyles = window.getComputedStyle(document.body);
     const cfeBg = computedStyles.getPropertyValue('--cfe-bg').trim();
@@ -1098,7 +1331,6 @@
       ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
 
-      // Trigger download
       const pngUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = pngUrl;
@@ -1182,7 +1414,6 @@
     showToast('💾 Recipe JSON downloaded!');
   }
 
-  // Load from URL hash if present
   function checkUrlHash() {
     const hash = window.location.hash;
     if (hash.startsWith('#recipe=')) {
@@ -1217,7 +1448,6 @@
 
   function startTimer(timeStr) {
     if (!timeStr) return;
-    // Extract minutes
     const match = timeStr.match(/(\d+)\s*(?:to|-)?\s*(\d+)?\s*min/i);
     let minutes = 10;
     if (match) {
@@ -1266,8 +1496,8 @@
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
       gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
       osc.start();
@@ -1299,16 +1529,145 @@
   // ============================================================================
 
   function bindEvents() {
-    // Preset Selector
+    // Preset Selector Change
     els.presetSelect.addEventListener('change', (e) => {
-      const key = e.target.value;
-      if (PRESETS[key]) {
-        state.recipe = JSON.parse(JSON.stringify(PRESETS[key]));
-        state.completedItems.clear();
-        renderRecipeCard();
-        renderSidebar();
-        showToast(`Loaded ${PRESETS[key].title}!`);
+      const val = e.target.value;
+      if (!val) return;
+      if (val.startsWith('preset:')) {
+        const key = val.replace('preset:', '');
+        openRecipeByKey(key, false);
+      } else if (val.startsWith('custom:')) {
+        const id = val.replace('custom:', '');
+        openRecipeByKey(id, true);
       }
+    });
+
+    // Cookbook Browser Button
+    els.browseBtn.addEventListener('click', () => {
+      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
+      els.browserModal.classList.remove('d-none');
+    });
+
+    els.closeBrowserModalBtn.addEventListener('click', () => {
+      els.browserModal.classList.add('d-none');
+    });
+
+    els.closeBrowserBtnBottom.addEventListener('click', () => {
+      els.browserModal.classList.add('d-none');
+    });
+
+    // Search bar in Browser
+    els.browserSearchInput.addEventListener('input', (e) => {
+      state.browserSearchTerm = e.target.value;
+      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
+    });
+
+    // Category Filter Pills in Browser
+    els.categoryFilterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        els.categoryFilterPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        state.browserFilterCat = pill.dataset.cat || 'all';
+        renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
+      });
+    });
+
+    // Browser Card Action Delegations (Open, Fork, Delete)
+    els.recipeBrowserGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const key = btn.dataset.key;
+      const isCustom = btn.dataset.custom === 'true';
+
+      if (action === 'open') {
+        openRecipeByKey(key, isCustom);
+      } else if (action === 'fork') {
+        forkRecipeByKey(key, isCustom);
+      } else if (action === 'delete') {
+        const id = btn.dataset.id;
+        if (confirm('Delete this recipe from your personal recipes?')) {
+          deleteCustomRecipe(id);
+          renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
+          showToast('Recipe deleted.');
+        }
+      }
+    });
+
+    // "+ New Recipe" Buttons
+    function openCreateModal() {
+      els.browserModal.classList.add('d-none');
+      els.newRecipeTitleInput.value = '';
+      els.newRecipeYieldInput.value = '';
+      els.newRecipeDescInput.value = '';
+      els.newRecipePrepInput.value = '';
+      els.newRecipeIngInput.value = '';
+      els.createRecipeModal.classList.remove('d-none');
+    }
+
+    els.newRecipeBtn.addEventListener('click', openCreateModal);
+    els.browserCreateNewBtn.addEventListener('click', openCreateModal);
+
+    els.closeCreateRecipeModalBtn.addEventListener('click', () => {
+      els.createRecipeModal.classList.add('d-none');
+    });
+    els.cancelCreateRecipeBtn.addEventListener('click', () => {
+      els.createRecipeModal.classList.add('d-none');
+    });
+
+    // Submit New Recipe
+    els.submitCreateRecipeBtn.addEventListener('click', () => {
+      const title = els.newRecipeTitleInput.value.trim();
+      if (!title) {
+        alert('Please enter a recipe title.');
+        return;
+      }
+
+      const ingText = els.newRecipeIngInput.value.trim();
+      const ingLines = ingText.split('\n').filter(l => l.trim());
+      if (ingLines.length === 0) {
+        alert('Please enter at least one ingredient.');
+        return;
+      }
+
+      const prepText = els.newRecipePrepInput.value.trim();
+      const prepSteps = prepText ? prepText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+
+      const ingredients = ingLines.map(parseIngredientLine).filter(Boolean);
+      const autoFlow = els.newRecipeAutoFlow.checked;
+      const actions = autoFlow ? generateAutoActions(ingredients, []) : [
+        { id: `act_${Date.now()}`, action: 'mix', startRow: 0, endRow: ingredients.length - 1, col: 1 }
+      ];
+
+      const newRecipe = {
+        id: 'custom_' + Date.now(),
+        title: title,
+        category: els.newRecipeCategoryInput.value || 'other',
+        yield: els.newRecipeYieldInput.value.trim() || 'Standard Yield',
+        source: 'My Recipes',
+        description: els.newRecipeDescInput.value.trim() || '',
+        prepSteps: prepSteps,
+        ingredients: ingredients,
+        actions: actions,
+        isCustom: true
+      };
+
+      saveCustomRecipe(newRecipe);
+      state.recipe = newRecipe;
+      state.completedItems.clear();
+      renderRecipeCard();
+      renderSidebar();
+      els.createRecipeModal.classList.add('d-none');
+      showToast(`🎉 Created "${title}" and opened in studio!`);
+    });
+
+    // Save Current Recipe Button (in Sidebar)
+    els.saveCurrentRecipeBtn.addEventListener('click', () => {
+      const toSave = JSON.parse(JSON.stringify(state.recipe));
+      toSave.id = toSave.id || ('custom_' + Date.now());
+      toSave.isCustom = true;
+      saveCustomRecipe(toSave);
+      showToast(`💾 Saved "${toSave.title}" to My Recipes!`);
     });
 
     // Scale Controls
@@ -1341,7 +1700,7 @@
     // Kitchen Mode Toggle
     els.cookModeBtn.addEventListener('click', toggleKitchenMode);
 
-    // Stop active timer button
+    // Stop active timer
     els.stopActiveTimerBtn.addEventListener('click', () => {
       if (state.activeTimer) {
         clearInterval(state.activeTimer.interval);
@@ -1627,11 +1986,11 @@
   function init() {
     checkUrlHash();
     bindEvents();
+    updateRecipeCatalogUI();
     renderRecipeCard();
     renderSidebar();
   }
 
-  // Start app when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

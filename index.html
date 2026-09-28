@@ -73,6 +73,18 @@
         </select>
       </div>
 
+      <!-- Browse & Create Buttons -->
+      <button id="browseBtn" class="btn btn-secondary" title="Open Recipe Cookbook & Explorer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+        <span>Cookbook</span>
+        <span id="recipeCountBadge" class="badge-count">10</span>
+      </button>
+
+      <button id="newRecipeBtn" class="btn btn-secondary" title="Create a new recipe from scratch">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>+ New</span>
+      </button>
+
       <!-- Quick Action Buttons -->
       <button id="importBtn" class="btn btn-secondary" title="Paste any recipe text to auto-convert">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -172,6 +184,13 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Prep Header Step
           </button>
+
+          <div class="mt-3 pt-2 border-top">
+            <button type="button" id="saveCurrentRecipeBtn" class="btn btn-primary w-100" title="Save current recipe to your browser's cookbook">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Save to My Recipes</span>
+            </button>
+          </div>
         </section>
 
         <!-- Tab 2: Ingredients Management -->
@@ -354,6 +373,117 @@ Instructions:
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="cancelQuickAddBtn">Cancel</button>
         <button type="button" class="btn btn-primary" id="processQuickAddBtn">Add All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipe Browser Modal (Cookbook) -->
+  <div id="browserModal" class="modal-backdrop d-none">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <div class="d-flex align-center gap-2">
+          <span style="font-size: 1.4rem;">📖</span>
+          <div>
+            <h3 class="modal-title">Recipe Cookbook & Explorer</h3>
+            <p class="form-help">Browse all presets and your saved custom recipes</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="closeBrowserModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="recipe-browser-toolbar">
+          <div class="browser-search-wrap">
+            <svg class="search-icon-pos" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="browserSearchInput" class="browser-search-input" placeholder="Search by recipe name, ingredient, or tag (e.g. chocolate, curry, pork, bread)...">
+          </div>
+          <div class="category-filter-pills" id="categoryFilterPills">
+            <button type="button" class="cat-pill active" data-cat="all">All Recipes</button>
+            <button type="button" class="cat-pill" data-cat="baking">🍰 Baking & Sweets</button>
+            <button type="button" class="cat-pill" data-cat="mains">🍛 Mains & Entrees</button>
+            <button type="button" class="cat-pill" data-cat="sauces">🥫 Sauces & Pickles</button>
+            <button type="button" class="cat-pill" data-cat="breakfast">🥞 Breakfast</button>
+            <button type="button" class="cat-pill" data-cat="beverages">☕ Coffee & Drinks</button>
+            <button type="button" class="cat-pill" data-cat="custom">⭐ My Saved Recipes</button>
+          </div>
+        </div>
+
+        <div class="recipe-browser-grid" id="recipeBrowserGrid">
+          <!-- Dynamically populated by app.js -->
+        </div>
+      </div>
+      <div class="modal-footer justify-between">
+        <button type="button" class="btn btn-primary" id="browserCreateNewBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Create New Recipe</span>
+        </button>
+        <button type="button" class="btn btn-secondary" id="closeBrowserBtnBottom">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create New Recipe Modal -->
+  <div id="createRecipeModal" class="modal-backdrop d-none">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="d-flex align-center gap-2">
+          <span style="font-size: 1.4rem;">✨</span>
+          <div>
+            <h3 class="modal-title">Create New Recipe</h3>
+            <p class="form-help">Enter recipe details to generate a Tabular Notation flowchart</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="closeCreateRecipeModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="newRecipeTitleInput">Recipe Title *</label>
+          <input type="text" id="newRecipeTitleInput" class="form-input" placeholder="e.g. Sourdough Waffles, Smoked Ribs">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="newRecipeCategoryInput">Category</label>
+            <select id="newRecipeCategoryInput" class="form-input styled-select">
+              <option value="baking">🍰 Baking & Sweets</option>
+              <option value="mains">🍛 Mains & Entrees</option>
+              <option value="sauces">🥫 Sauces & Pickles</option>
+              <option value="breakfast">🥞 Breakfast</option>
+              <option value="beverages">☕ Coffee & Drinks</option>
+              <option value="other">🍽️ Other</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="newRecipeYieldInput">Yield / Servings</label>
+            <input type="text" id="newRecipeYieldInput" class="form-input" placeholder="e.g. 4 servings, 12 pieces">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="newRecipeDescInput">Description</label>
+          <textarea id="newRecipeDescInput" class="form-textarea" rows="2" placeholder="Brief summary, flavor profile, or background..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="newRecipePrepInput">Prep Header Banners (One per line, optional)</label>
+          <textarea id="newRecipePrepInput" class="form-textarea" rows="2" placeholder="Preheat oven to 375° F&#10;Line baking sheet with parchment paper"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="newRecipeIngInput">Ingredients (One per line) *</label>
+          <p class="form-help mb-1">Dual units like "1 cup (200 g) flour" or "4 oz (115 g) butter" are automatically parsed.</p>
+          <textarea id="newRecipeIngInput" class="form-textarea" rows="6" placeholder="1 cup (200 g) sugar&#10;2 large (100 g) eggs&#10;1/2 cup (115 g) melted butter&#10;1 cup (130 g) flour&#10;1 tsp baking powder"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="d-flex align-center gap-2" style="cursor: pointer; text-transform: none;">
+            <input type="checkbox" id="newRecipeAutoFlow" checked style="accent-color: var(--primary); width: 16px; height: 16px;">
+            <span>Auto-generate process columns from ingredients</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelCreateRecipeBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submitCreateRecipeBtn">Create & Open Recipe</button>
       </div>
     </div>
   </div>
