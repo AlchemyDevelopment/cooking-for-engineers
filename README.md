@@ -22,6 +22,10 @@ Inspired by Michael Chu's iconic **Cooking for Engineers** tabular recipe format
   - `Metric` only
 - **Curated Preset Recipes**:
   - ⭐ *Chu's Famous Fudge Brownies* (the exact recipe from the original site)
+  - 🍛 *Instant Pot Japanese Curry* (with chicken, potatoes, carrots, and pressure-cooking flow)
+  - 🥪 *Authentic Cuban Mojo Pork & Cubano Sandwich* (12-hr brine, citrus-garlic roast & plancha press)
+  - 🍎 *Apple BBQ Sauce* (ketchup, apple juice, cider vinegar, brown sugar, bourbon & spice reduction)
+  - 🧅 *Quick Pickled Red Onions* (scalded onion semi-circles with peppercorn cider brine)
   - 🍪 *Classic Chocolate Chip Cookies*
   - 🍝 *Authentic Spaghetti alla Carbonara*
   - 🥞 *Fluffy Buttermilk Pancakes*

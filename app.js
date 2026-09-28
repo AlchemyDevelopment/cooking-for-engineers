@@ -40,6 +40,130 @@
       ]
     },
 
+    "japanese-curry": {
+      title: "Instant Pot Japanese Curry",
+      yield: "6 servings (or 3 batches / 1500g)",
+      source: "Just One Cookbook / Alchemy Kitchen",
+      description: "Comforting Japanese curry prepared in a pressure cooker with tender chicken, potatoes, and rich velvety gravy.",
+      prepSteps: [
+        "Peel & slice carrots and onions; cut Yukon potatoes into bite-sized chunks",
+        "Mince garlic and finely grate fresh ginger",
+        "Cut chicken thighs into bite-sized pieces and season with salt & pepper"
+      ],
+      ingredients: [
+        { id: "jc_1", name: "neutral-flavored oil", amount: 1, unit: "TBSP", metricAmount: 15, metricUnit: "mL", rawText: "1 TBSP (15 mL) neutral-flavored oil" },
+        { id: "jc_2", name: "yellow onions, sliced", amount: 3, unit: "medium", metricAmount: 450, metricUnit: "g", rawText: "3 medium (450 g) yellow onions, sliced" },
+        { id: "jc_3", name: "garlic, minced", amount: 2, unit: "tsp.", metricAmount: 10, metricUnit: "g", rawText: "2 tsp. (10 g) minced garlic" },
+        { id: "jc_4", name: "fresh ginger, finely grated", amount: 1, unit: "tsp.", metricAmount: 5, metricUnit: "g", rawText: "1 tsp. (5 g) grated fresh ginger" },
+        { id: "jc_5", name: "boneless, skinless chicken thighs, bite-sized", amount: 1.5, unit: "lbs", metricAmount: 680, metricUnit: "g", rawText: "1.5 lbs (680 g) chicken thighs" },
+        { id: "jc_6", name: "kosher salt", amount: 0.125, unit: "tsp.", metricAmount: 0.8, metricUnit: "g", rawText: "1/8 tsp. (0.8 g) kosher salt" },
+        { id: "jc_7", name: "freshly ground black pepper", amount: 0.125, unit: "tsp.", metricAmount: 0.3, metricUnit: "g", rawText: "1/8 tsp. (0.3 g) black pepper" },
+        { id: "jc_8", name: "carrots, sliced diagonally", amount: 1.5, unit: "medium", metricAmount: 200, metricUnit: "g", rawText: "1.5 medium (200 g) carrots, sliced" },
+        { id: "jc_9", name: "Yukon gold potatoes, chunked", amount: 3, unit: "medium", metricAmount: 450, metricUnit: "g", rawText: "3 medium (450 g) Yukon gold potatoes" },
+        { id: "jc_10", name: "chicken stock or broth", amount: 3, unit: "cups", metricAmount: 710, metricUnit: "mL", rawText: "3 cups (710 mL) chicken broth" },
+        { id: "jc_11", name: "Japanese curry roux blocks", amount: 1, unit: "pack", metricAmount: 200, metricUnit: "g", rawText: "1 pack (200 g) curry roux blocks" },
+        { id: "jc_12", name: "ketchup", amount: 1, unit: "TBSP", metricAmount: 15, metricUnit: "mL", rawText: "1 TBSP (15 mL) ketchup" },
+        { id: "jc_13", name: "soy sauce", amount: 1, unit: "TBSP", metricAmount: 15, metricUnit: "mL", rawText: "1 TBSP (15 mL) soy sauce" }
+      ],
+      actions: [
+        { id: "jc_act1", action: "sauté", notes: "Sauté mode until fragrant", startRow: 0, endRow: 3, col: 1 },
+        { id: "jc_act2", action: "sauté chicken", notes: "coat with oil & aromatics", startRow: 0, endRow: 6, col: 2 },
+        { id: "jc_act3", action: "mix well", notes: "distribute vegetables", startRow: 0, endRow: 8, col: 3 },
+        { id: "jc_act4", action: "pressure cook", temp: "High (Meat/Stew)", time: "15 min + QR/NR", notes: "Press down in broth. Place roux on top. DO NOT MIX!", startRow: 0, endRow: 10, col: 4 },
+        { id: "jc_act5", action: "simmer & dissolve", notes: "Sauté mode ~5 min until roux is fully dissolved", startRow: 0, endRow: 12, col: 5 },
+        { id: "jc_act6", action: "serve", notes: "over steamed Japanese rice or noodles", startRow: 0, endRow: 12, col: 6 }
+      ]
+    },
+
+    "mojo-pork": {
+      title: "Authentic Cuban Mojo Pork & Cubano Sandwich",
+      yield: "8 to 10 sandwiches",
+      source: "Traditional Cuban / Alchemy Kitchen",
+      description: "Citrus-garlic marinated slow-roasted pork shoulder layered with ham, Swiss, pickles, and mustard on toasted plancha bread.",
+      prepSteps: [
+        "Brine pork shoulder for 12 hours (OJ, water, spiced rum, salt, sugar & herbs); pat dry",
+        "Prepare Mojo marinade and marinate pork shoulder for at least 2 hours"
+      ],
+      ingredients: [
+        { id: "mp_1", name: "pork shoulder (bone-in or boneless)", amount: 6, unit: "lbs", metricAmount: 2.7, metricUnit: "kg", rawText: "6 lbs (2.7 kg) pork shoulder" },
+        { id: "mp_2", name: "extra virgin olive oil", amount: 0.666, unit: "cup", metricAmount: 160, metricUnit: "mL", rawText: "2/3 cup (160 mL) olive oil" },
+        { id: "mp_3", name: "fresh cilantro, finely chopped", amount: 0.666, unit: "cup", metricAmount: 30, metricUnit: "g", rawText: "2/3 cup (30 g) chopped cilantro" },
+        { id: "mp_4", name: "fresh mint leaves, chopped", amount: 4, unit: "TBSP", metricAmount: 15, metricUnit: "g", rawText: "4 TBSP (15 g) fresh mint" },
+        { id: "mp_5", name: "fresh orange juice", amount: 0.5, unit: "cup", metricAmount: 120, metricUnit: "mL", rawText: "1/2 cup (120 mL) orange juice" },
+        { id: "mp_6", name: "fresh squeezed lime juice", amount: 0.5, unit: "cup", metricAmount: 120, metricUnit: "mL", rawText: "1/2 cup (120 mL) lime juice" },
+        { id: "mp_7", name: "garlic cloves, minced", amount: 7, unit: "cloves", metricAmount: 30, metricUnit: "g", rawText: "7 cloves (30 g) garlic, minced" },
+        { id: "mp_8", name: "grated orange zest", amount: 1.5, unit: "TBSP", metricAmount: 9, metricUnit: "g", rawText: "1 1/2 TBSP (9 g) orange zest" },
+        { id: "mp_9", name: "fresh oregano, chopped", amount: 2, unit: "tsp.", metricAmount: 4, metricUnit: "g", rawText: "2 tsp. (4 g) fresh oregano" },
+        { id: "mp_10", name: "ground cumin", amount: 1, unit: "tsp.", metricAmount: 3, metricUnit: "g", rawText: "1 tsp. (3 g) ground cumin" },
+        { id: "mp_11", name: "freshly ground black pepper", amount: 0.666, unit: "tsp.", metricAmount: 2, metricUnit: "g", rawText: "2/3 tsp. (2 g) black pepper" },
+        { id: "mp_12", name: "fine sea salt", amount: 0.666, unit: "tsp.", metricAmount: 4, metricUnit: "g", rawText: "2/3 tsp. (4 g) sea salt" },
+        { id: "mp_13", name: "baguettes or Cuban bread (~9 in)", amount: 4, unit: "loaves", metricAmount: 4, metricUnit: "loaves", rawText: "4 loaves Cuban bread (~9 in)" },
+        { id: "mp_14", name: "American yellow mustard", amount: 0.5, unit: "cup", metricAmount: 120, metricUnit: "mL", rawText: "1/2 cup (120 mL) yellow mustard" },
+        { id: "mp_15", name: "Swiss cheese slices", amount: 0.5, unit: "lb", metricAmount: 225, metricUnit: "g", rawText: "1/2 lb (225 g) Swiss cheese" },
+        { id: "mp_16", name: "dill pickles, sliced lengthwise", amount: 2, unit: "cups", metricAmount: 300, metricUnit: "g", rawText: "2 cups (300 g) dill pickles" },
+        { id: "mp_17", name: "sliced deli ham", amount: 1, unit: "lb", metricAmount: 450, metricUnit: "g", rawText: "1 lb (450 g) sliced ham" },
+        { id: "mp_18", name: "butter (for bread & plancha)", amount: 0.5, unit: "cup", metricAmount: 115, metricUnit: "g", rawText: "1/2 cup (115 g) butter" }
+      ],
+      actions: [
+        { id: "mp_act1", action: "whisk marinade", notes: "combine citrus & aromatics", startRow: 1, endRow: 11, col: 1 },
+        { id: "mp_act2", action: "slow roast", temp: "300° F (150° C)", time: "until 170° F internal", notes: "baste with marinade throughout", startRow: 0, endRow: 11, col: 2 },
+        { id: "mp_act3", action: "rest & slice", notes: "cool, thinly slice & grill", startRow: 0, endRow: 11, col: 3 },
+        { id: "mp_act4", action: "layer sandwich", notes: "pork + ham + swiss + pickles + mustard", startRow: 0, endRow: 16, col: 4 },
+        { id: "mp_act5", action: "butter & press", notes: "heated plancha until golden & melted", startRow: 0, endRow: 17, col: 5 }
+      ]
+    },
+
+    "bbq-sauce": {
+      title: "Apple BBQ Sauce",
+      yield: "~2 cups (480 mL)",
+      source: "Alchemy Smokehouse",
+      description: "Sweet, tangy apple barbecue sauce balanced with cider vinegar, brown sugar, and spirits.",
+      prepSteps: [
+        "Measure ingredients into a medium heavy-bottomed saucepan"
+      ],
+      ingredients: [
+        { id: "bbq_1", name: "ketchup", amount: 1, unit: "cup", metricAmount: 240, metricUnit: "mL", rawText: "1 cup (240 mL) ketchup" },
+        { id: "bbq_2", name: "apple juice", amount: 0.5, unit: "cup", metricAmount: 120, metricUnit: "mL", rawText: "1/2 cup (120 mL) apple juice" },
+        { id: "bbq_3", name: "apple cider vinegar", amount: 1, unit: "tsp.", metricAmount: 5, metricUnit: "mL", rawText: "1 tsp. (5 mL) apple cider vinegar" },
+        { id: "bbq_4", name: "brown sugar", amount: 0.25, unit: "cup", metricAmount: 50, metricUnit: "g", rawText: "1/4 cup (50 g) brown sugar" },
+        { id: "bbq_5", name: "spirits of choice (bourbon or spiced rum)", amount: 0.25, unit: "cup", metricAmount: 60, metricUnit: "mL", rawText: "1/4 cup (60 mL) bourbon or rum" },
+        { id: "bbq_6", name: "onion powder", amount: 1, unit: "tsp.", metricAmount: 3, metricUnit: "g", rawText: "1 tsp. (3 g) onion powder" },
+        { id: "bbq_7", name: "garlic powder", amount: 1, unit: "tsp.", metricAmount: 3, metricUnit: "g", rawText: "1 tsp. (3 g) garlic powder" },
+        { id: "bbq_8", name: "black pepper", amount: 1, unit: "tsp.", metricAmount: 2, metricUnit: "g", rawText: "1 tsp. (2 g) black pepper" },
+        { id: "bbq_9", name: "dried oregano", amount: 1, unit: "tsp.", metricAmount: 1, metricUnit: "g", rawText: "1 tsp. (1 g) dried oregano" }
+      ],
+      actions: [
+        { id: "bbq_act1", action: "whisk", notes: "liquids & brown sugar", startRow: 0, endRow: 4, col: 1 },
+        { id: "bbq_act2", action: "blend in", notes: "spices", startRow: 0, endRow: 8, col: 2 },
+        { id: "bbq_act3", action: "simmer on low", time: "15 to 20 min", notes: "stir occasionally until glossy & thickened", startRow: 0, endRow: 8, col: 3 }
+      ]
+    },
+
+    "pickled-onions": {
+      title: "Quick Pickled Red Onions",
+      yield: "1 pint mason jar (480 mL)",
+      source: "Alchemy Kitchen",
+      description: "Crisp, vibrant pink pickled onions. Perfect topping for tacos, cubano sandwiches, burgers, and bowls.",
+      prepSteps: [
+        "Sterilize a 1-pint glass mason jar with boiling water"
+      ],
+      ingredients: [
+        { id: "po_1", name: "apple cider vinegar", amount: 0.5, unit: "cup", metricAmount: 120, metricUnit: "mL", rawText: "1/2 cup (120 mL) apple cider vinegar" },
+        { id: "po_2", name: "water", amount: 1, unit: "cup", metricAmount: 240, metricUnit: "mL", rawText: "1 cup (240 mL) water" },
+        { id: "po_3", name: "granulated sugar", amount: 2, unit: "TBSP", metricAmount: 25, metricUnit: "g", rawText: "2 TBSP (25 g) sugar" },
+        { id: "po_4", name: "kosher salt", amount: 1.5, unit: "tsp.", metricAmount: 9, metricUnit: "g", rawText: "1 1/2 tsp. (9 g) kosher salt" },
+        { id: "po_5", name: "whole black peppercorns", amount: 8, unit: "whole", metricAmount: 1, metricUnit: "g", rawText: "8 whole (1 g) black peppercorns" },
+        { id: "po_6", name: "medium red onion, thinly sliced into semi-circles", amount: 1, unit: "medium", metricAmount: 150, metricUnit: "g", rawText: "1 medium (150 g) red onion, sliced" },
+        { id: "po_7", name: "boiling water (for blanching)", amount: 4, unit: "cups", metricAmount: 950, metricUnit: "mL", rawText: "4 cups (950 mL) boiling water" }
+      ],
+      actions: [
+        { id: "po_act1", action: "stir to dissolve", notes: "stir vinegar, water, sugar, salt & pepper in small bowl", startRow: 0, endRow: 4, col: 1 },
+        { id: "po_act2", action: "scald & drain", time: "sit 1 min", notes: "cover sliced onions in boiling water, then drain well", startRow: 5, endRow: 6, col: 1 },
+        { id: "po_act3", action: "pack in jar & pour brine", notes: "pack warm onions into mason jar & cover with brine", startRow: 0, endRow: 6, col: 2 },
+        { id: "po_act4", action: "seal & refrigerate", time: "chill 24+ hrs", notes: "great after 3 days", startRow: 0, endRow: 6, col: 3 }
+      ]
+    },
+
     "choc-chip-cookies": {
       title: "Ultimate Chocolate Chip Cookies",
       yield: "24 cookies",

@@ -1,0 +1,5 @@
+# Local archives and artifacts
+*.zip
+temp/
+node_modules/
+.DS_Store
