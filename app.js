@@ -365,11 +365,9 @@
 
   function getAllRecipes() {
     const list = [];
-    // Built-in presets
     for (const [key, preset] of Object.entries(PRESETS)) {
       list.push({ ...preset, key, isCustom: false });
     }
-    // Custom saved recipes
     const custom = getCustomRecipes();
     custom.forEach(c => {
       list.push({ ...c, key: c.id, isCustom: true });
@@ -382,16 +380,18 @@
   // ============================================================================
 
   const state = {
+    view: 'cookbook', // 'cookbook' or 'studio'
     recipe: JSON.parse(JSON.stringify(PRESETS.brownies)),
     scale: 1.0,
-    unitMode: 'dual', // 'dual', 'us', 'metric'
+    unitMode: 'dual',
     theme: 'classic',
     zoom: 1.0,
     kitchenMode: false,
     completedItems: new Set(),
     activeTimer: null,
-    browserFilterCat: 'all',
-    browserSearchTerm: ''
+    cookbookFilterCat: 'all',
+    cookbookSearchTerm: '',
+    isEditing: false
   };
 
   // ============================================================================
@@ -399,11 +399,26 @@
   // ============================================================================
 
   const els = {
-    // Header & Controls
+    // Views
+    cookbookView: document.getElementById('cookbookView'),
+    studioView: document.getElementById('studioView'),
+    brandHomeLink: document.getElementById('brandHomeLink'),
+    backToCookbookBtn: document.getElementById('backToCookbookBtn'),
+    studioOnlyElements: document.querySelectorAll('.studio-only'),
+
+    // Cookbook Landing Page Elements
+    cookbookSearchInput: document.getElementById('cookbookSearchInput'),
+    heroNewRecipeBtn: document.getElementById('heroNewRecipeBtn'),
+    cookbookCatTabs: document.querySelectorAll('#cookbookCatTabs .hero-cat-tab'),
+    cookbookGalleryGrid: document.getElementById('cookbookGalleryGrid'),
+
+    // Header Controls
     presetSelect: document.getElementById('presetSelect'),
     themeSelect: document.getElementById('themeSelect'),
     scaleBtns: document.querySelectorAll('.scale-control-group .btn-pill'),
     unitBtns: document.querySelectorAll('.unit-control-group .btn-pill'),
+    editModeBtn: document.getElementById('editModeBtn'),
+    editModeBtnLabel: document.getElementById('editModeBtnLabel'),
     cookModeBtn: document.getElementById('cookModeBtn'),
     browseBtn: document.getElementById('browseBtn'),
     recipeCountBadge: document.getElementById('recipeCountBadge'),
@@ -461,15 +476,7 @@
     activeTimerTime: document.getElementById('activeTimerTime'),
     stopActiveTimerBtn: document.getElementById('stopActiveTimerBtn'),
 
-    // Modals
-    browserModal: document.getElementById('browserModal'),
-    closeBrowserModalBtn: document.getElementById('closeBrowserModalBtn'),
-    closeBrowserBtnBottom: document.getElementById('closeBrowserBtnBottom'),
-    browserCreateNewBtn: document.getElementById('browserCreateNewBtn'),
-    browserSearchInput: document.getElementById('browserSearchInput'),
-    categoryFilterPills: document.querySelectorAll('#categoryFilterPills .cat-pill'),
-    recipeBrowserGrid: document.getElementById('recipeBrowserGrid'),
-
+    // Create Recipe Modal
     createRecipeModal: document.getElementById('createRecipeModal'),
     closeCreateRecipeModalBtn: document.getElementById('closeCreateRecipeModalBtn'),
     cancelCreateRecipeBtn: document.getElementById('cancelCreateRecipeBtn'),
@@ -482,12 +489,14 @@
     newRecipeIngInput: document.getElementById('newRecipeIngInput'),
     newRecipeAutoFlow: document.getElementById('newRecipeAutoFlow'),
 
+    // Import Modal
     importModal: document.getElementById('importModal'),
     importRecipeInput: document.getElementById('importRecipeInput'),
     closeImportModalBtn: document.getElementById('closeImportModalBtn'),
     cancelImportBtn: document.getElementById('cancelImportBtn'),
     processImportBtn: document.getElementById('processImportBtn'),
 
+    // Quick Add Modal
     quickAddModal: document.getElementById('quickAddModal'),
     quickAddInput: document.getElementById('quickAddInput'),
     closeQuickAddModalBtn: document.getElementById('closeQuickAddModalBtn'),
@@ -499,6 +508,219 @@
   };
 
   // ============================================================================
+  // View Routing: Cookbook Home vs Studio
+  // ============================================================================
+
+  function setEditMode(enable) {
+    state.isEditing = !!enable;
+    if (state.isEditing) {
+      els.editorSidebar.classList.remove('collapsed');
+      if (els.editModeBtn) {
+        els.editModeBtn.classList.add('active');
+        if (els.editModeBtnLabel) els.editModeBtnLabel.textContent = 'Close Editor';
+      }
+      renderSidebar();
+    } else {
+      els.editorSidebar.classList.add('collapsed');
+      if (els.editModeBtn) {
+        els.editModeBtn.classList.remove('active');
+        if (els.editModeBtnLabel) els.editModeBtnLabel.textContent = 'Edit Recipe';
+      }
+    }
+  }
+
+  function toggleEditMode() {
+    setEditMode(els.editorSidebar.classList.contains('collapsed'));
+  }
+
+  function setView(viewName) {
+    state.view = viewName;
+    if (viewName === 'cookbook') {
+      els.cookbookView.classList.remove('d-none');
+      els.studioView.classList.add('d-none');
+      els.studioOnlyElements.forEach(el => el.classList.add('d-none'));
+      setEditMode(false);
+      renderCookbookGallery(state.cookbookFilterCat, state.cookbookSearchTerm);
+      window.scrollTo(0, 0);
+    } else {
+      els.cookbookView.classList.add('d-none');
+      els.studioView.classList.remove('d-none');
+      els.studioOnlyElements.forEach(el => el.classList.remove('d-none'));
+      renderRecipeCard();
+      if (state.isEditing) {
+        renderSidebar();
+      }
+    }
+  }
+
+  function getCategoryEmoji(cat) {
+    switch (cat) {
+      case 'baking': return '🍰';
+      case 'mains': return '🍛';
+      case 'sauces': return '🥫';
+      case 'breakfast': return '🥞';
+      case 'beverages': return '☕';
+      default: return '🍽️';
+    }
+  }
+
+  // ============================================================================
+  // Cookbook Landing Page Gallery Rendering
+  // ============================================================================
+
+  function renderCookbookGallery(category = 'all', searchQuery = '') {
+    const all = getAllRecipes();
+    const query = (searchQuery || '').trim().toLowerCase();
+
+    const filtered = all.filter(r => {
+      if (category === 'custom' && !r.isCustom) return false;
+      if (category !== 'all' && category !== 'custom' && r.category !== category) return false;
+
+      if (query) {
+        const titleMatch = (r.title || '').toLowerCase().includes(query);
+        const descMatch = (r.description || '').toLowerCase().includes(query);
+        const sourceMatch = (r.source || '').toLowerCase().includes(query);
+        const ingMatch = (r.ingredients || []).some(i => (i.name || '').toLowerCase().includes(query));
+        return titleMatch || descMatch || sourceMatch || ingMatch;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      els.cookbookGalleryGrid.innerHTML = `
+        <div class="empty-browser-state">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔍</div>
+          <h3>No matching recipes found</h3>
+          <p class="form-help">Try clearing your search or switching categories, or click "+ Create Recipe" above.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(r => {
+      const emoji = getCategoryEmoji(r.category);
+      const ingsCount = (r.ingredients || []).length;
+      const stepsCount = (r.actions || []).length;
+      const isCustom = !!r.isCustom;
+
+      html += `
+        <div class="cookbook-card ${isCustom ? 'is-custom' : ''}" data-key="${r.key}" data-custom="${isCustom}">
+          <div>
+            <div class="card-top-row">
+              <span class="card-cat-badge">${emoji} ${escapeHtml(r.category || 'Recipe')}</span>
+              <span class="card-source-tag">${isCustom ? '⭐ Personal Recipe' : escapeHtml(truncate(r.source, 24))}</span>
+            </div>
+            <h3 class="card-recipe-title">${escapeHtml(r.title || 'Untitled')}</h3>
+            <p class="card-recipe-desc">${escapeHtml(r.description || 'Structured Cooking for Engineers flowchart table.')}</p>
+          </div>
+
+          <div>
+            <div class="card-metrics-row">
+              <span>🌾 <strong>${ingsCount}</strong> ingredients</span>
+              <span>•</span>
+              <span>⚙️ <strong>${stepsCount}</strong> process steps</span>
+              <span>•</span>
+              <span>${escapeHtml(truncate(r.yield || 'Standard', 14))}</span>
+            </div>
+
+            <div class="card-actions-bar">
+              <button type="button" class="btn btn-primary btn-sm btn-open-flowchart" data-action="open" data-key="${r.key}" data-custom="${isCustom}">
+                Open Flowchart →
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" title="Fork / Duplicate recipe" data-action="fork" data-key="${r.key}" data-custom="${isCustom}">
+                Fork
+              </button>
+              ${isCustom ? `
+                <button type="button" class="btn btn-secondary btn-sm text-danger" title="Delete recipe" data-action="delete" data-id="${r.id}">
+                  ✕
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    els.cookbookGalleryGrid.innerHTML = html;
+  }
+
+  function updateRecipeCatalogUI() {
+    const all = getAllRecipes();
+    if (els.recipeCountBadge) {
+      els.recipeCountBadge.textContent = all.length;
+    }
+
+    if (els.presetSelect) {
+      const currentTitle = state.recipe.title;
+      let html = '<option value="" disabled selected>📖 Switch Recipe...</option>';
+
+      html += '<optgroup label="⭐ Curated Presets">';
+      for (const [key, preset] of Object.entries(PRESETS)) {
+        const isSel = preset.title === currentTitle ? 'selected' : '';
+        html += `<option value="preset:${key}" ${isSel}>${getCategoryEmoji(preset.category)} ${preset.title}</option>`;
+      }
+      html += '</optgroup>';
+
+      const custom = getCustomRecipes();
+      if (custom.length > 0) {
+        html += '<optgroup label="💾 My Saved Recipes">';
+        custom.forEach(c => {
+          const isSel = c.title === currentTitle ? 'selected' : '';
+          html += `<option value="custom:${c.id}" ${isSel}>⭐ ${escapeHtml(c.title)}</option>`;
+        });
+        html += '</optgroup>';
+      }
+
+      els.presetSelect.innerHTML = html;
+    }
+
+    if (state.view === 'cookbook') {
+      renderCookbookGallery(state.cookbookFilterCat, state.cookbookSearchTerm);
+    }
+  }
+
+  function openRecipeByKey(key, isCustom) {
+    let target = null;
+    if (isCustom) {
+      const custom = getCustomRecipes();
+      target = custom.find(r => r.id === key);
+    } else {
+      target = PRESETS[key];
+    }
+
+    if (target) {
+      state.recipe = JSON.parse(JSON.stringify(target));
+      state.completedItems.clear();
+      setEditMode(false);
+      setView('studio');
+      updateRecipeCatalogUI();
+      showToast(`Loaded ${target.title}!`);
+    }
+  }
+
+  function forkRecipeByKey(key, isCustom) {
+    let source = null;
+    if (isCustom) {
+      const custom = getCustomRecipes();
+      source = custom.find(r => r.id === key);
+    } else {
+      source = PRESETS[key];
+    }
+
+    if (source) {
+      const forked = JSON.parse(JSON.stringify(source));
+      forked.id = 'custom_' + Date.now();
+      forked.title = `${forked.title} (Copy)`;
+      forked.isCustom = true;
+      saveCustomRecipe(forked);
+      state.recipe = forked;
+      setView('studio');
+      showToast(`Forked as "${forked.title}"!`);
+    }
+  }
+
+  // ============================================================================
   // Fraction & Number Formatting
   // ============================================================================
 
@@ -508,7 +730,6 @@
     const whole = Math.floor(rounded);
     const remainder = rounded - whole;
 
-    // Common fraction tolerances
     const eps = 0.04;
     let frac = '';
     if (Math.abs(remainder - 0.25) < eps) frac = '1/4';
@@ -566,7 +787,7 @@
 
     const numRows = ingredients.length;
     if (numRows === 0) {
-      return '<tr><td style="padding: 2.5rem; text-align: center; color: var(--ui-text-muted);">No ingredients yet. Use the sidebar to add ingredients or click "+ New" above.</td></tr>';
+      return '<tr><td style="padding: 2.5rem; text-align: center; color: var(--ui-text-muted);">No ingredients yet. Use the sidebar to add ingredients.</td></tr>';
     }
 
     let maxCol = 1;
@@ -649,10 +870,8 @@
       }
     }
 
-    // Build HTML string
     let html = '';
 
-    // Prep steps banner header rows
     prepSteps.forEach((step, idx) => {
       if (!step || !step.trim()) return;
       html += `
@@ -664,7 +883,6 @@
       `;
     });
 
-    // Body rows
     for (let r = 0; r < numRows; r++) {
       html += `<tr data-row-index="${r}">`;
 
@@ -727,7 +945,7 @@
   }
 
   // ============================================================================
-  // Rendering & UI Synchronization
+  // Rendering & Studio UI Synchronization
   // ============================================================================
 
   function renderRecipeCard() {
@@ -858,179 +1076,6 @@
   function truncate(str, len) {
     if (!str) return '';
     return str.length > len ? str.slice(0, len) + '…' : str;
-  }
-
-  // ============================================================================
-  // Cookbook Browser & Custom Recipes UI
-  // ============================================================================
-
-  function updateRecipeCatalogUI() {
-    const all = getAllRecipes();
-
-    // 1. Update Header Badge Count
-    if (els.recipeCountBadge) {
-      els.recipeCountBadge.textContent = all.length;
-    }
-
-    // 2. Update Header Preset Select Dropdown
-    if (els.presetSelect) {
-      const currentTitle = state.recipe.title;
-      let html = '<option value="" disabled selected>📖 Select a Recipe...</option>';
-
-      html += '<optgroup label="⭐ Curated Presets">';
-      for (const [key, preset] of Object.entries(PRESETS)) {
-        const isSel = preset.title === currentTitle ? 'selected' : '';
-        html += `<option value="preset:${key}" ${isSel}>${getCategoryEmoji(preset.category)} ${preset.title}</option>`;
-      }
-      html += '</optgroup>';
-
-      const custom = getCustomRecipes();
-      if (custom.length > 0) {
-        html += '<optgroup label="💾 My Saved Recipes">';
-        custom.forEach(c => {
-          const isSel = c.title === currentTitle ? 'selected' : '';
-          html += `<option value="custom:${c.id}" ${isSel}>⭐ ${escapeHtml(c.title)}</option>`;
-        });
-        html += '</optgroup>';
-      }
-
-      els.presetSelect.innerHTML = html;
-    }
-
-    // 3. Re-render Recipe Browser if open
-    if (!els.browserModal.classList.contains('d-none')) {
-      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
-    }
-  }
-
-  function getCategoryEmoji(cat) {
-    switch (cat) {
-      case 'baking': return '🍰';
-      case 'mains': return '🍛';
-      case 'sauces': return '🥫';
-      case 'breakfast': return '🥞';
-      case 'beverages': return '☕';
-      default: return '🍽️';
-    }
-  }
-
-  function renderRecipeBrowser(category = 'all', searchQuery = '') {
-    const all = getAllRecipes();
-    const query = (searchQuery || '').trim().toLowerCase();
-
-    const filtered = all.filter(r => {
-      // Category filter
-      if (category === 'custom' && !r.isCustom) return false;
-      if (category !== 'all' && category !== 'custom' && r.category !== category) return false;
-
-      // Search query filter
-      if (query) {
-        const titleMatch = (r.title || '').toLowerCase().includes(query);
-        const descMatch = (r.description || '').toLowerCase().includes(query);
-        const sourceMatch = (r.source || '').toLowerCase().includes(query);
-        const ingMatch = (r.ingredients || []).some(i => (i.name || '').toLowerCase().includes(query));
-        return titleMatch || descMatch || sourceMatch || ingMatch;
-      }
-      return true;
-    });
-
-    if (filtered.length === 0) {
-      els.recipeBrowserGrid.innerHTML = `
-        <div class="empty-browser-state">
-          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
-          <h4>No matching recipes found</h4>
-          <p class="form-help">Try changing your search term or category filter, or click "+ Create New Recipe" below.</p>
-        </div>
-      `;
-      return;
-    }
-
-    let html = '';
-    filtered.forEach(r => {
-      const emoji = getCategoryEmoji(r.category);
-      const ingsCount = (r.ingredients || []).length;
-      const stepsCount = (r.actions || []).length;
-      const isCustom = !!r.isCustom;
-
-      html += `
-        <div class="recipe-card-preview ${isCustom ? 'is-custom' : ''}">
-          <div>
-            <div class="preview-card-top">
-              <span class="preview-category-tag">${emoji} ${escapeHtml(r.category || 'Recipe')}</span>
-              <span class="preview-source-badge">${isCustom ? '⭐ My Recipe' : escapeHtml(truncate(r.source, 20))}</span>
-            </div>
-            <h4 class="preview-card-title">${escapeHtml(r.title || 'Untitled')}</h4>
-            <p class="preview-card-desc">${escapeHtml(r.description || 'No description provided.')}</p>
-          </div>
-          <div>
-            <div class="preview-card-stats">
-              <span>🌾 ${ingsCount} ing.</span>
-              <span>•</span>
-              <span>⚙️ ${stepsCount} steps</span>
-              <span>•</span>
-              <span>${escapeHtml(truncate(r.yield || 'Standard', 12))}</span>
-            </div>
-            <div class="preview-card-actions">
-              <button type="button" class="btn btn-sm btn-primary btn-card-open" data-action="open" data-key="${r.key}" data-custom="${isCustom}">
-                Open in Studio
-              </button>
-              <button type="button" class="btn btn-sm btn-secondary" title="Duplicate recipe" data-action="fork" data-key="${r.key}" data-custom="${isCustom}">
-                Fork
-              </button>
-              ${isCustom ? `
-                <button type="button" class="btn btn-sm btn-secondary text-danger" title="Delete recipe" data-action="delete" data-id="${r.id}">
-                  ✕
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    els.recipeBrowserGrid.innerHTML = html;
-  }
-
-  function openRecipeByKey(key, isCustom) {
-    let target = null;
-    if (isCustom) {
-      const custom = getCustomRecipes();
-      target = custom.find(r => r.id === key);
-    } else {
-      target = PRESETS[key];
-    }
-
-    if (target) {
-      state.recipe = JSON.parse(JSON.stringify(target));
-      state.completedItems.clear();
-      renderRecipeCard();
-      renderSidebar();
-      els.browserModal.classList.add('d-none');
-      showToast(`Loaded ${target.title}!`);
-    }
-  }
-
-  function forkRecipeByKey(key, isCustom) {
-    let source = null;
-    if (isCustom) {
-      const custom = getCustomRecipes();
-      source = custom.find(r => r.id === key);
-    } else {
-      source = PRESETS[key];
-    }
-
-    if (source) {
-      const forked = JSON.parse(JSON.stringify(source));
-      forked.id = 'custom_' + Date.now();
-      forked.title = `${forked.title} (Copy)`;
-      forked.isCustom = true;
-      saveCustomRecipe(forked);
-      state.recipe = forked;
-      renderRecipeCard();
-      renderSidebar();
-      els.browserModal.classList.add('d-none');
-      showToast(`Forked as "${forked.title}"!`);
-    }
   }
 
   // ============================================================================
@@ -1423,6 +1468,7 @@
         const parsed = JSON.parse(jsonStr);
         if (parsed && parsed.ingredients) {
           state.recipe = parsed;
+          setView('studio');
           showToast('Loaded shared recipe from URL!');
         }
       } catch (e) {
@@ -1529,7 +1575,56 @@
   // ============================================================================
 
   function bindEvents() {
-    // Preset Selector Change
+    // Navigation: Return to Cookbook
+    els.brandHomeLink.addEventListener('click', () => setView('cookbook'));
+    els.backToCookbookBtn.addEventListener('click', () => setView('cookbook'));
+    els.browseBtn.addEventListener('click', () => setView('cookbook'));
+
+    // Cookbook Hero Search
+    els.cookbookSearchInput.addEventListener('input', (e) => {
+      state.cookbookSearchTerm = e.target.value;
+      renderCookbookGallery(state.cookbookFilterCat, state.cookbookSearchTerm);
+    });
+
+    // Cookbook Category Tabs
+    els.cookbookCatTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        els.cookbookCatTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.cookbookFilterCat = tab.dataset.cat || 'all';
+        renderCookbookGallery(state.cookbookFilterCat, state.cookbookSearchTerm);
+      });
+    });
+
+    // Cookbook Card Clicks (Open Flowchart, Fork, Delete)
+    els.cookbookGalleryGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.cookbook-card');
+      if (!card) return;
+
+      const btn = e.target.closest('button[data-action]');
+      const key = card.dataset.key;
+      const isCustom = card.dataset.custom === 'true';
+
+      if (btn) {
+        const action = btn.dataset.action;
+        if (action === 'open') {
+          openRecipeByKey(key, isCustom);
+        } else if (action === 'fork') {
+          forkRecipeByKey(key, isCustom);
+        } else if (action === 'delete') {
+          const id = btn.dataset.id;
+          if (confirm('Delete this recipe from your personal recipes?')) {
+            deleteCustomRecipe(id);
+            showToast('Recipe deleted.');
+          }
+        }
+      } else {
+        // Direct click on card opens flowchart
+        openRecipeByKey(key, isCustom);
+      }
+    });
+
+    // Preset Selector Change in Studio Header
     els.presetSelect.addEventListener('change', (e) => {
       const val = e.target.value;
       if (!val) return;
@@ -1542,61 +1637,8 @@
       }
     });
 
-    // Cookbook Browser Button
-    els.browseBtn.addEventListener('click', () => {
-      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
-      els.browserModal.classList.remove('d-none');
-    });
-
-    els.closeBrowserModalBtn.addEventListener('click', () => {
-      els.browserModal.classList.add('d-none');
-    });
-
-    els.closeBrowserBtnBottom.addEventListener('click', () => {
-      els.browserModal.classList.add('d-none');
-    });
-
-    // Search bar in Browser
-    els.browserSearchInput.addEventListener('input', (e) => {
-      state.browserSearchTerm = e.target.value;
-      renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
-    });
-
-    // Category Filter Pills in Browser
-    els.categoryFilterPills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        els.categoryFilterPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        state.browserFilterCat = pill.dataset.cat || 'all';
-        renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
-      });
-    });
-
-    // Browser Card Action Delegations (Open, Fork, Delete)
-    els.recipeBrowserGrid.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-action]');
-      if (!btn) return;
-      const action = btn.dataset.action;
-      const key = btn.dataset.key;
-      const isCustom = btn.dataset.custom === 'true';
-
-      if (action === 'open') {
-        openRecipeByKey(key, isCustom);
-      } else if (action === 'fork') {
-        forkRecipeByKey(key, isCustom);
-      } else if (action === 'delete') {
-        const id = btn.dataset.id;
-        if (confirm('Delete this recipe from your personal recipes?')) {
-          deleteCustomRecipe(id);
-          renderRecipeBrowser(state.browserFilterCat, state.browserSearchTerm);
-          showToast('Recipe deleted.');
-        }
-      }
-    });
-
-    // "+ New Recipe" Buttons
+    // Open Create Modal
     function openCreateModal() {
-      els.browserModal.classList.add('d-none');
       els.newRecipeTitleInput.value = '';
       els.newRecipeYieldInput.value = '';
       els.newRecipeDescInput.value = '';
@@ -1606,7 +1648,7 @@
     }
 
     els.newRecipeBtn.addEventListener('click', openCreateModal);
-    els.browserCreateNewBtn.addEventListener('click', openCreateModal);
+    els.heroNewRecipeBtn.addEventListener('click', openCreateModal);
 
     els.closeCreateRecipeModalBtn.addEventListener('click', () => {
       els.createRecipeModal.classList.add('d-none');
@@ -1615,7 +1657,7 @@
       els.createRecipeModal.classList.add('d-none');
     });
 
-    // Submit New Recipe
+    // Submit Create Recipe
     els.submitCreateRecipeBtn.addEventListener('click', () => {
       const title = els.newRecipeTitleInput.value.trim();
       if (!title) {
@@ -1655,10 +1697,10 @@
       saveCustomRecipe(newRecipe);
       state.recipe = newRecipe;
       state.completedItems.clear();
-      renderRecipeCard();
-      renderSidebar();
+      setView('studio');
+      setEditMode(true);
       els.createRecipeModal.classList.add('d-none');
-      showToast(`🎉 Created "${title}" and opened in studio!`);
+      showToast(`🎉 Created "${title}" and opened in editor!`);
     });
 
     // Save Current Recipe Button (in Sidebar)
@@ -1764,13 +1806,16 @@
       });
     });
 
-    // Sidebar Toggle
-    els.toggleSidebarBtn.addEventListener('click', () => {
-      els.editorSidebar.classList.add('collapsed');
-    });
-    els.openSidebarFloatingBtn.addEventListener('click', () => {
-      els.editorSidebar.classList.remove('collapsed');
-    });
+    // Sidebar & Edit Mode Toggle
+    if (els.editModeBtn) {
+      els.editModeBtn.addEventListener('click', toggleEditMode);
+    }
+    if (els.toggleSidebarBtn) {
+      els.toggleSidebarBtn.addEventListener('click', () => setEditMode(false));
+    }
+    if (els.openSidebarFloatingBtn) {
+      els.openSidebarFloatingBtn.addEventListener('click', () => setEditMode(true));
+    }
 
     // Zoom Controls
     els.zoomInBtn.addEventListener('click', () => setZoom(state.zoom + 0.1));
@@ -1944,9 +1989,9 @@
       const text = els.importRecipeInput.value;
       const parsed = parseRecipeText(text);
       if (parsed && parsed.ingredients.length > 0) {
+        saveCustomRecipe(parsed);
         state.recipe = parsed;
-        renderRecipeCard();
-        renderSidebar();
+        setView('studio');
         els.importModal.classList.add('d-none');
         showToast(`🎉 Parsed ${parsed.ingredients.length} ingredients into Tabular Notation!`);
       } else {
@@ -1987,8 +2032,10 @@
     checkUrlHash();
     bindEvents();
     updateRecipeCatalogUI();
-    renderRecipeCard();
-    renderSidebar();
+    // Default to the Cookbook First Page unless a recipe was loaded from URL hash
+    if (!window.location.hash.startsWith('#recipe=')) {
+      setView('cookbook');
+    }
   }
 
   if (document.readyState === 'loading') {

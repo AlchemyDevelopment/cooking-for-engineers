@@ -15,33 +15,29 @@
   <!-- Top Navigation Bar -->
   <header class="app-header">
     <div class="header-left">
-      <div class="brand">
+      <div class="brand" id="brandHomeLink" style="cursor: pointer;" title="Back to Cookbook Home">
         <span class="brand-icon">📐</span>
         <div>
           <h1 class="brand-title">Cooking for Engineers</h1>
-          <span class="brand-subtitle">Tabular Recipe Notation Studio</span>
+          <span class="brand-subtitle">Tabular Recipe Studio</span>
         </div>
       </div>
 
-      <div class="preset-selector-wrap">
+      <!-- Back to Cookbook button (visible in studio) -->
+      <button id="backToCookbookBtn" class="btn btn-secondary btn-sm studio-only d-none" title="Return to Cookbook Gallery">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        <span>← Cookbook</span>
+      </button>
+
+      <div class="preset-selector-wrap studio-only d-none">
         <label for="presetSelect" class="sr-only">Choose a Recipe Preset</label>
-        <select id="presetSelect" class="styled-select" title="Load sample recipe">
-          <option value="" disabled selected>📖 Select a Recipe...</option>
-          <option value="brownies">⭐ Chu's Famous Brownies (Original)</option>
-          <option value="japanese-curry">🍛 Instant Pot Japanese Curry</option>
-          <option value="mojo-pork">🥪 Cubano Mojo Pork & Sandwich</option>
-          <option value="bbq-sauce">🍎 Apple BBQ Sauce</option>
-          <option value="pickled-onions">🧅 Quick Pickled Red Onions</option>
-          <option value="choc-chip-cookies">🍪 Classic Chocolate Chip Cookies</option>
-          <option value="carbonara">🍝 Authentic Spaghetti Carbonara</option>
-          <option value="pancakes">🥞 Fluffy Buttermilk Pancakes</option>
-          <option value="pizza-dough">🍕 72-Hour Fermented Pizza Dough</option>
-          <option value="v60-coffee">☕ Engineer's V60 Pour Over Coffee</option>
+        <select id="presetSelect" class="styled-select" title="Switch recipe">
+          <option value="" disabled selected>📖 Switch Recipe...</option>
         </select>
       </div>
     </div>
 
-    <div class="header-center">
+    <div class="header-center studio-only d-none">
       <!-- Recipe Scale Controls -->
       <div class="scale-control-group" title="Scale ingredient amounts">
         <span class="control-label">Scale:</span>
@@ -74,29 +70,33 @@
       </div>
 
       <!-- Browse & Create Buttons -->
-      <button id="browseBtn" class="btn btn-secondary" title="Open Recipe Cookbook & Explorer">
+      <button id="browseBtn" class="btn btn-secondary studio-only d-none" title="Open Recipe Cookbook">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
         <span>Cookbook</span>
         <span id="recipeCountBadge" class="badge-count">10</span>
       </button>
 
-      <button id="newRecipeBtn" class="btn btn-secondary" title="Create a new recipe from scratch">
+      <button id="newRecipeBtn" class="btn btn-primary" title="Create a new recipe from scratch">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>+ New</span>
+        <span>+ New Recipe</span>
       </button>
 
-      <!-- Quick Action Buttons -->
       <button id="importBtn" class="btn btn-secondary" title="Paste any recipe text to auto-convert">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Import</span>
       </button>
 
-      <button id="cookModeBtn" class="btn btn-secondary" title="Toggle interactive step checklist and timers">
+      <button id="editModeBtn" class="btn btn-secondary studio-only d-none" title="Toggle Recipe Editor Sidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span id="editModeBtnLabel">Edit Recipe</span>
+      </button>
+
+      <button id="cookModeBtn" class="btn btn-secondary studio-only d-none" title="Toggle interactive step checklist and timers">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
         <span>Kitchen Mode</span>
       </button>
 
-      <div class="dropdown-wrapper">
+      <div class="dropdown-wrapper studio-only d-none">
         <button id="exportDropdownBtn" class="btn btn-primary" title="Export Recipe">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span>Export</span>
@@ -133,10 +133,51 @@
     </div>
   </header>
 
-  <!-- Main Application Workspace -->
-  <main class="app-workspace">
+  <!-- =========================================================================
+       PAGE VIEW 1: THE COOKBOOK GALLERY (First Landing Page)
+       ========================================================================= -->
+  <main id="cookbookView" class="cookbook-landing-view">
+    <div class="cookbook-hero-container">
+      <div class="hero-badge">TABULAR RECIPE NOTATION</div>
+      <h2 class="hero-heading">Cooking for Engineers</h2>
+      <p class="hero-subtext">Recipes structured as process flowcharts. Ingredients sequence on the left and flow left-to-right into actions and final dishes.</p>
+
+      <div class="hero-actions-row">
+        <div class="hero-search-box">
+          <svg class="search-icon-pos" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="cookbookSearchInput" class="hero-search-input" placeholder="Search 10+ recipes by name, ingredient, or tag (e.g. curry, brownies, pork, cookies)...">
+        </div>
+        <button id="heroNewRecipeBtn" class="btn btn-primary btn-hero">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Create Recipe</span>
+        </button>
+      </div>
+
+      <div class="cookbook-cat-tabs" id="cookbookCatTabs">
+        <button type="button" class="hero-cat-tab active" data-cat="all">All Recipes</button>
+        <button type="button" class="hero-cat-tab" data-cat="baking">🍰 Baking & Sweets</button>
+        <button type="button" class="hero-cat-tab" data-cat="mains">🍛 Mains & Entrees</button>
+        <button type="button" class="hero-cat-tab" data-cat="sauces">🥫 Sauces & Pickles</button>
+        <button type="button" class="hero-cat-tab" data-cat="breakfast">🥞 Breakfast</button>
+        <button type="button" class="hero-cat-tab" data-cat="beverages">☕ Coffee & Drinks</button>
+        <button type="button" class="hero-cat-tab" data-cat="custom">⭐ My Saved Recipes</button>
+      </div>
+    </div>
+
+    <!-- The Full Recipe Cards Grid -->
+    <div class="cookbook-gallery-content">
+      <div class="cookbook-grid-container" id="cookbookGalleryGrid">
+        <!-- Dynamically rendered by app.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       PAGE VIEW 2: THE INTERACTIVE RECIPE STUDIO
+       ========================================================================= -->
+  <main id="studioView" class="app-workspace d-none">
     <!-- Left Panel: Recipe Editor -->
-    <aside class="editor-sidebar" id="editorSidebar">
+    <aside class="editor-sidebar collapsed" id="editorSidebar">
       <div class="sidebar-header">
         <div class="sidebar-tabs">
           <button class="tab-btn active" data-tab="general">Basics & Prep</button>
@@ -144,8 +185,8 @@
           <button class="tab-btn" data-tab="steps">Action Flow</button>
           <button class="tab-btn" data-tab="raw">JSON</button>
         </div>
-        <button id="toggleSidebarBtn" class="btn-icon" title="Toggle Sidebar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x1="9" y1="3" y2="21"/></svg>
+        <button id="toggleSidebarBtn" class="btn-icon" title="Close Recipe Editor">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
 
@@ -247,8 +288,9 @@
       <!-- Canvas Toolbar -->
       <div class="canvas-toolbar">
         <div class="toolbar-left">
-          <button id="openSidebarFloatingBtn" class="btn-icon sidebar-floating-btn" title="Open Recipe Editor">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x1="9" y1="3" y2="21"/></svg>
+          <button id="openSidebarFloatingBtn" class="btn btn-secondary btn-sm sidebar-floating-btn" title="Open Recipe Editor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Edit Recipe</span>
           </button>
           <span class="live-badge">
             <span class="live-pulse"></span>
