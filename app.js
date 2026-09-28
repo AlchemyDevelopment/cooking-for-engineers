@@ -2020,8 +2020,12 @@
 
   function setZoom(level) {
     state.zoom = Math.max(0.5, Math.min(2.0, Math.round(level * 10) / 10));
-    els.zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
-    els.recipeCardWrapper.style.transform = `scale(${state.zoom})`;
+    if (els.zoomLevel) els.zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
+    if (state.zoom === 1.0) {
+      els.recipeCardWrapper.style.transform = '';
+    } else {
+      els.recipeCardWrapper.style.transform = `scale(${state.zoom})`;
+    }
   }
 
   // ============================================================================

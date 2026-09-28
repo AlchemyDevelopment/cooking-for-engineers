@@ -26,7 +26,7 @@
       <!-- Back to Cookbook button (visible in studio) -->
       <button id="backToCookbookBtn" class="btn btn-secondary btn-sm studio-only d-none" title="Return to Cookbook Gallery">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-        <span>← Cookbook</span>
+        <span class="btn-label">← Cookbook</span>
       </button>
 
       <div class="preset-selector-wrap studio-only d-none">
@@ -61,45 +61,45 @@
       <!-- Theme Switcher -->
       <div class="theme-dropdown-wrap">
         <select id="themeSelect" class="styled-select theme-select" title="Change visual theme">
-          <option value="classic">🎨 Classic CFE (Green & Cream)</option>
-          <option value="blueprint">📐 Engineering Blueprint</option>
-          <option value="dark">🌑 Slate Dark</option>
-          <option value="cookbook">📖 Editorial Cookbook</option>
-          <option value="laser">🖨️ High-Contrast Print</option>
+          <option value="classic">🎨 Classic</option>
+          <option value="blueprint">📐 Blueprint</option>
+          <option value="dark">🌑 Slate</option>
+          <option value="cookbook">📖 Editorial</option>
+          <option value="laser">🖨️ Print</option>
         </select>
       </div>
 
       <!-- Browse & Create Buttons -->
       <button id="browseBtn" class="btn btn-secondary studio-only d-none" title="Open Recipe Cookbook">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-        <span>Cookbook</span>
+        <span class="btn-label">Cookbook</span>
         <span id="recipeCountBadge" class="badge-count">10</span>
       </button>
 
       <button id="newRecipeBtn" class="btn btn-primary" title="Create a new recipe from scratch">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>+ New Recipe</span>
+        <span class="btn-label">+ New</span>
       </button>
 
       <button id="importBtn" class="btn btn-secondary" title="Paste any recipe text to auto-convert">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Import</span>
+        <span class="btn-label">Import</span>
       </button>
 
       <button id="editModeBtn" class="btn btn-secondary studio-only d-none" title="Toggle Recipe Editor Sidebar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span id="editModeBtnLabel">Edit Recipe</span>
+        <span id="editModeBtnLabel" class="btn-label">Edit Recipe</span>
       </button>
 
       <button id="cookModeBtn" class="btn btn-secondary studio-only d-none" title="Toggle interactive step checklist and timers">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-        <span>Kitchen Mode</span>
+        <span class="btn-label">Cook Mode</span>
       </button>
 
       <div class="dropdown-wrapper studio-only d-none">
         <button id="exportDropdownBtn" class="btn btn-primary" title="Export Recipe">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Export</span>
+          <span class="btn-label">Export</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <div id="exportMenu" class="dropdown-menu">
@@ -332,6 +332,12 @@
               </div>
             </div>
             <div class="format-badge">TABULAR RECIPE NOTATION</div>
+          </div>
+
+          <!-- Mobile Scroll Hint (visible on touch/small screens) -->
+          <div class="mobile-table-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 7 5 5-5 5"/><path d="M5 12h14"/><path d="m10 17-5-5 5-5"/></svg>
+            <span>Scroll horizontally to follow process steps →</span>
           </div>
 
           <!-- The Core Tabular Recipe Matrix -->
