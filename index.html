@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cooking for Engineers — Tabular Recipe Generator</title>
+  <meta name="description" content="Generate and customize beautiful Cooking for Engineers flowchart recipes and tabular recipe notation (TRN). Export high-res PNG, SVG, or print-ready cards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
+</head>
+<body data-theme="classic">
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <span class="brand-icon">📐</span>
+        <div>
+          <h1 class="brand-title">Cooking for Engineers</h1>
+          <span class="brand-subtitle">Tabular Recipe Notation Studio</span>
+        </div>
+      </div>
+
+      <div class="preset-selector-wrap">
+        <label for="presetSelect" class="sr-only">Choose a Recipe Preset</label>
+        <select id="presetSelect" class="styled-select" title="Load sample recipe">
+          <option value="" disabled selected>📖 Select a Recipe...</option>
+          <option value="brownies">⭐ Chu's Famous Brownies (Original)</option>
+          <option value="choc-chip-cookies">🍪 Classic Chocolate Chip Cookies</option>
+          <option value="carbonara">🍝 Authentic Spaghetti Carbonara</option>
+          <option value="pancakes">🥞 Fluffy Buttermilk Pancakes</option>
+          <option value="pizza-dough">🍕 72-Hour Fermented Pizza Dough</option>
+          <option value="v60-coffee">☕ Engineer's V60 Pour Over Coffee</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <!-- Recipe Scale Controls -->
+      <div class="scale-control-group" title="Scale ingredient amounts">
+        <span class="control-label">Scale:</span>
+        <button type="button" class="btn-pill" data-scale="0.5">0.5×</button>
+        <button type="button" class="btn-pill active" data-scale="1">1×</button>
+        <button type="button" class="btn-pill" data-scale="1.5">1.5×</button>
+        <button type="button" class="btn-pill" data-scale="2">2×</button>
+        <button type="button" class="btn-pill" data-scale="3">3×</button>
+      </div>
+
+      <!-- Unit Display Mode -->
+      <div class="unit-control-group" title="Unit display format">
+        <span class="control-label">Units:</span>
+        <button type="button" class="btn-pill active" data-units="dual">Dual</button>
+        <button type="button" class="btn-pill" data-units="us">US</button>
+        <button type="button" class="btn-pill" data-units="metric">Metric</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Theme Switcher -->
+      <div class="theme-dropdown-wrap">
+        <select id="themeSelect" class="styled-select theme-select" title="Change visual theme">
+          <option value="classic">🎨 Classic CFE (Green & Cream)</option>
+          <option value="blueprint">📐 Engineering Blueprint</option>
+          <option value="dark">🌑 Slate Dark</option>
+          <option value="cookbook">📖 Editorial Cookbook</option>
+          <option value="laser">🖨️ High-Contrast Print</option>
+        </select>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <button id="importBtn" class="btn btn-secondary" title="Paste any recipe text to auto-convert">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Import</span>
+      </button>
+
+      <button id="cookModeBtn" class="btn btn-secondary" title="Toggle interactive step checklist and timers">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        <span>Kitchen Mode</span>
+      </button>
+
+      <div class="dropdown-wrapper">
+        <button id="exportDropdownBtn" class="btn btn-primary" title="Export Recipe">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Export</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div id="exportMenu" class="dropdown-menu">
+          <button id="exportPngBtn" class="dropdown-item">
+            <span>🖼️ Export as PNG Image</span>
+            <small>High resolution, ready to share</small>
+          </button>
+          <button id="exportSvgBtn" class="dropdown-item">
+            <span>📐 Export as SVG Vector</span>
+            <small>Scalable crisp graphics</small>
+          </button>
+          <button id="printBtn" class="dropdown-item">
+            <span>🖨️ Print / Save as PDF</span>
+            <small>Optimized card sheet</small>
+          </button>
+          <div class="dropdown-divider"></div>
+          <button id="shareLinkBtn" class="dropdown-item">
+            <span>🔗 Copy Shareable Link</span>
+            <small>Encoded directly in URL</small>
+          </button>
+          <button id="copyMarkdownBtn" class="dropdown-item">
+            <span>📋 Copy as Markdown Table</span>
+            <small>For GitHub README & notes</small>
+          </button>
+          <button id="exportJsonBtn" class="dropdown-item">
+            <span>💾 Save Recipe as JSON</span>
+            <small>Full editable backup</small>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <main class="app-workspace">
+    <!-- Left Panel: Recipe Editor -->
+    <aside class="editor-sidebar" id="editorSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="general">Basics & Prep</button>
+          <button class="tab-btn" data-tab="ingredients">Ingredients</button>
+          <button class="tab-btn" data-tab="steps">Action Flow</button>
+          <button class="tab-btn" data-tab="raw">JSON</button>
+        </div>
+        <button id="toggleSidebarBtn" class="btn-icon" title="Toggle Sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x1="9" y1="3" y2="21"/></svg>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Tab 1: General & Prep Header Rows -->
+        <section id="tab-general" class="tab-panel active">
+          <div class="form-group">
+            <label for="recipeTitle">Recipe Title</label>
+            <input type="text" id="recipeTitle" class="form-input" placeholder="e.g. Chu's Fudge Brownies">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="recipeYield">Yield / Servings</label>
+              <input type="text" id="recipeYield" class="form-input" placeholder="e.g. 16 squares (8x8 pan)">
+            </div>
+            <div class="form-group flex-1">
+              <label for="recipeSource">Source / Author</label>
+              <input type="text" id="recipeSource" class="form-input" placeholder="e.g. Michael Chu / CFE">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="recipeDescription">Description / Notes</label>
+            <textarea id="recipeDescription" class="form-textarea" rows="2" placeholder="Brief context or tips for this recipe..."></textarea>
+          </div>
+
+          <div class="section-divider">
+            <span>Spanning Prep Banners (Top Rows)</span>
+          </div>
+          <p class="form-help">These instructions appear across the entire top of the chart (e.g. oven preheating, pan preparation, equipment setup).</p>
+
+          <div id="prepStepsContainer" class="prep-steps-list"></div>
+
+          <button type="button" id="addPrepStepBtn" class="btn btn-sm btn-dashed w-100">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Prep Header Step
+          </button>
+        </section>
+
+        <!-- Tab 2: Ingredients Management -->
+        <section id="tab-ingredients" class="tab-panel">
+          <div class="panel-header-actions">
+            <div>
+              <h3 class="panel-subtitle">Base Ingredients</h3>
+              <p class="form-help">Ingredients define the rows on the left side of the chart.</p>
+            </div>
+            <button type="button" id="quickAddIngBtn" class="btn btn-sm btn-outline">⚡ Quick Add</button>
+          </div>
+
+          <div id="ingredientsListContainer" class="ingredients-list"></div>
+
+          <button type="button" id="addIngredientBtn" class="btn btn-sm btn-dashed w-100 mt-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Ingredient Row
+          </button>
+        </section>
+
+        <!-- Tab 3: Action Flow / Operation Steps -->
+        <section id="tab-steps" class="tab-panel">
+          <div class="panel-header-actions">
+            <div>
+              <h3 class="panel-subtitle">Process Graph (Columns)</h3>
+              <p class="form-help">Combine ingredients and prior mixtures with actions moving left to right.</p>
+            </div>
+            <button type="button" id="autoGroupBtn" class="btn btn-sm btn-outline" title="Auto-detect action flow from steps">🪄 Auto-Arrange</button>
+          </div>
+
+          <div id="actionStepsContainer" class="action-steps-list"></div>
+
+          <button type="button" id="addActionStepBtn" class="btn btn-sm btn-dashed w-100 mt-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Action Column Block
+          </button>
+        </section>
+
+        <!-- Tab 4: Raw JSON -->
+        <section id="tab-raw" class="tab-panel">
+          <div class="form-group">
+            <div class="d-flex justify-between align-center mb-1">
+              <label for="rawJsonEditor">Recipe JSON</label>
+              <button id="applyJsonBtn" class="btn btn-sm btn-primary">Apply Changes</button>
+            </div>
+            <textarea id="rawJsonEditor" class="form-textarea code-editor" rows="18" spellcheck="false"></textarea>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Right Panel: Canvas & Live Interactive Preview -->
+    <section class="canvas-area">
+      <!-- Canvas Toolbar -->
+      <div class="canvas-toolbar">
+        <div class="toolbar-left">
+          <button id="openSidebarFloatingBtn" class="btn-icon sidebar-floating-btn" title="Open Recipe Editor">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x1="9" y1="3" y2="21"/></svg>
+          </button>
+          <span class="live-badge">
+            <span class="live-pulse"></span>
+            LIVE PREVIEW
+          </span>
+          <span id="canvasRecipeTitle" class="canvas-title-preview"></span>
+        </div>
+
+        <div class="toolbar-right">
+          <!-- Active Kitchen Mode Timers indicator -->
+          <div id="kitchenActiveTimer" class="kitchen-timer-chip d-none">
+            <span class="timer-icon">⏱️</span>
+            <span id="activeTimerTime">30:00</span>
+            <button id="stopActiveTimerBtn" class="btn-chip-action" title="Dismiss timer">✕</button>
+          </div>
+
+          <div class="zoom-controls">
+            <button id="zoomOutBtn" class="btn-icon btn-sm" title="Zoom Out">−</button>
+            <span id="zoomLevel" class="zoom-label">100%</span>
+            <button id="zoomInBtn" class="btn-icon btn-sm" title="Zoom In">+</button>
+            <button id="zoomFitBtn" class="btn-icon btn-sm" title="Fit to screen">⤢</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Viewport -->
+      <div class="preview-viewport" id="previewViewport">
+        <!-- Rendered Recipe Card -->
+        <div class="recipe-card-wrapper" id="recipeCardWrapper">
+          <div class="recipe-card-header">
+            <div class="recipe-card-heading">
+              <h2 id="cardTitle" class="card-title">Butter and flour an 8x8-in pan</h2>
+              <div class="card-meta" id="cardMeta">
+                <span id="cardYield">16 squares</span>
+                <span class="meta-dot">•</span>
+                <span id="cardSource">Cooking for Engineers</span>
+                <span class="meta-dot">•</span>
+                <span id="cardScaleIndicator" class="scale-tag">1× scale</span>
+              </div>
+            </div>
+            <div class="format-badge">TABULAR RECIPE NOTATION</div>
+          </div>
+
+          <!-- The Core Tabular Recipe Matrix -->
+          <div class="table-outer-frame" id="tableOuterFrame">
+            <table class="cfe-table" id="cfeTable">
+              <!-- Dynamically populated by app.js -->
+            </table>
+          </div>
+
+          <!-- Bottom Footer Notes / Legend -->
+          <div class="recipe-card-footer">
+            <div class="footer-legend">
+              <span class="legend-item"><span class="legend-arrow">→</span> Read left to right: ingredients combine into operations across spanned rows</span>
+            </div>
+            <div class="footer-brand">
+              Generated by <strong>Cooking for Engineers Studio</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal-backdrop d-none">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">✨ Paste Any Recipe to Auto-Convert</h3>
+        <button type="button" class="btn-close-modal" id="closeImportModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">Paste a traditional recipe text below (ingredients and preparation steps). Our intelligent parser will automatically extract prep steps, dual units, base ingredients, and organize them into the tabular flowchart.</p>
+        <textarea id="importRecipeInput" class="form-textarea" rows="12" placeholder="Example:
+Chocolate Chip Cookies
+Yield: 24 cookies
+
+Preheat oven to 375°F.
+Line two large baking sheets with parchment paper.
+
+Ingredients:
+2 1/4 cups (280g) all-purpose flour
+1 tsp baking soda
+1 tsp fine salt
+1 cup (225g) unsalted butter, softened
+3/4 cup (150g) granulated sugar
+3/4 cup (165g) packed brown sugar
+2 large eggs
+2 tsp vanilla extract
+2 cups (340g) semi-sweet chocolate chips
+
+Instructions:
+1. In a medium bowl, whisk together flour, baking soda, and salt.
+2. In a large bowl, beat softened butter, granulated sugar, and brown sugar until creamy.
+3. Beat in eggs one at a time, then stir in vanilla extract.
+4. Gradually mix the dry flour mixture into the butter mixture until combined.
+5. Fold in chocolate chips.
+6. Bake at 375°F for 9 to 11 minutes until golden brown."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelImportBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="processImportBtn">Parse & Generate Chart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Add Ingredient Modal -->
+  <div id="quickAddModal" class="modal-backdrop d-none">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">⚡ Quick Add Ingredients</h3>
+        <button type="button" class="btn-close-modal" id="closeQuickAddModalBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="form-help mb-2">Paste one ingredient per line. Dual units like "4 oz (115 g) unsalted butter" are automatically recognized!</p>
+        <textarea id="quickAddInput" class="form-textarea" rows="8" placeholder="4 oz (115 g) unsalted butter
+1 cup (200 g) sugar
+1/4 tsp. (2.5 mL) vanilla extract
+2 large (100 g) eggs
+1/2 cup (80 g) all-purpose flour"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelQuickAddBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="processQuickAddBtn">Add All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Hidden Canvas for PNG Generation -->
+  <canvas id="exportCanvas" style="display: none;"></canvas>
+
+  <script src="app.js"></script>
+</body>
+</html>
